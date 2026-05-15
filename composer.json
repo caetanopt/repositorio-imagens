@@ -1,0 +1,20 @@
+{
+    "name": "caetano/repositorio-imagens",
+    "description": "Repositório de imagens para a Caetano Automotive Portugal",
+    "type": "project",
+    "require": {
+        "php": ">=8.1",
+        "vlucas/phpdotenv": "^5.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "src/"
+        },
+        "files": [
+            "src/helpers.php"
+        ]
+    },
+    "config": {
+        "optimize-autoloader": true
+    }
+}
