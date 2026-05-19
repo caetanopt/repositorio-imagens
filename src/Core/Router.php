@@ -48,7 +48,7 @@ class Router
 
         // 404
         http_response_code(404);
-        $this->render404();
+        $this->render404($uri, $method);
     }
 
     private function match(string $pattern, string $uri): ?array
@@ -92,17 +92,34 @@ class Router
             die('Internal Server Error');
         }
 
-        $controller->$method($request, $params);
+        try {
+            $controller->$method($request, $params);
+        } catch (\Throwable $e) {
+            error_log('Controller exception: ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine());
+            http_response_code(500);
+            $debug = (env('APP_DEBUG', false) === true || env('APP_DEBUG', '') === 'true');
+            if ($debug) {
+                echo '<pre style="background:#1a1a2e;color:#e94560;padding:2rem;font-size:13px">';
+                echo htmlspecialchars((string) $e);
+                echo '</pre>';
+            } else {
+                die('Internal Server Error');
+            }
+        }
     }
 
-    private function render404(): void
+    private function render404(string $uri = '', string $method = 'GET'): void
     {
+        $debug = (env('APP_DEBUG', false) === true || env('APP_DEBUG', '') === 'true');
         $viewFile = __DIR__ . '/../Views/errors/404.php';
         if (file_exists($viewFile)) {
             require $viewFile;
         } else {
             echo '<!DOCTYPE html><html><head><title>404 Not Found</title></head><body>';
             echo '<h1>404 — Página não encontrada</h1>';
+            if ($debug) {
+                echo '<p><code>' . htmlspecialchars($method) . ' ' . htmlspecialchars($uri) . '</code> não corresponde a nenhuma rota.</p>';
+            }
             echo '<p><a href="/">Voltar ao início</a></p>';
             echo '</body></html>';
         }
