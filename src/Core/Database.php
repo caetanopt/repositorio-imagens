@@ -43,12 +43,10 @@ class Database
         try {
             $this->connection = new PDO($dsn, $user, $pass, $options);
         } catch (PDOException $e) {
-            if (env('APP_DEBUG', 'false') === 'true') {
-                throw $e;
-            }
             error_log('Database connection failed: ' . $e->getMessage());
             http_response_code(503);
-            die('Service temporarily unavailable.');
+            // Temporary: always show error detail for diagnosis
+            die('DB Error: ' . $e->getMessage() . ' | DSN: ' . preg_replace('/password=[^;]*/', 'password=***', $dsn) . ' | USER: ' . $user);
         }
     }
 
