@@ -163,4 +163,34 @@ class Image extends Model
         );
         return $stmt->fetchAll();
     }
+
+    public function countByLocation(int $brandId, int $locationId): int
+    {
+        $row = $this->db()->query(
+            'SELECT COUNT(*) AS cnt FROM "images" WHERE "brand_id" = ? AND "location_id" = ? AND "deleted_at" IS NULL',
+            [$brandId, $locationId]
+        )->fetch();
+        return (int) ($row['cnt'] ?? 0);
+    }
+
+    public function findByLocation(int $brandId, int $locationId): array
+    {
+        return $this->db()->query(
+            'SELECT i.*, u.name AS uploader_name
+             FROM "images" i
+             INNER JOIN "users" u ON u.id = i.uploaded_by
+             WHERE i.brand_id = ? AND i.location_id = ? AND i.deleted_at IS NULL
+             ORDER BY i.created_at ASC',
+            [$brandId, $locationId]
+        )->fetchAll();
+    }
+
+    public function countByBrand(int $brandId): int
+    {
+        $row = $this->db()->query(
+            'SELECT COUNT(*) AS cnt FROM "images" WHERE "brand_id" = ? AND "deleted_at" IS NULL',
+            [$brandId]
+        )->fetch();
+        return (int) ($row['cnt'] ?? 0);
+    }
 }

@@ -9,6 +9,7 @@ use App\Core\Request;
 use App\Models\AuditLog;
 use App\Models\Brand;
 use App\Models\Image;
+use App\Models\Location;
 use App\Models\User;
 
 class AdminController extends Controller
@@ -403,6 +404,140 @@ class AdminController extends Controller
         $auditLog = new AuditLog();
         $auditLog->log($me['id'], 'image_hard_delete', 'image', $id, [
             'filename' => $image['original_filename'],
+        ]);
+
+        $this->json(['success' => true]);
+    }
+
+    // ─── Locations ────────────────────────────────────────────────────────────────
+
+    public function locationList(Request $request, array $params = []): void
+    {
+        $this->requirePermission('manage_brands');
+
+        $brandId    = (int) ($params['id'] ?? 0);
+        $brandModel = new Brand();
+        $brand      = $brandModel->find($brandId);
+
+        if (!$brand) {
+            $this->setFlash('error', 'Marca não encontrada.');
+            $this->redirect('/admin/brands');
+        }
+
+        $locationModel = new Location();
+        $locations     = $locationModel->findByBrand($brandId);
+
+        $imageModel = new Image();
+        foreach ($locations as &$location) {
+            $location['image_count'] = $imageModel->countByLocation($brandId, $location['id']);
+        }
+        unset($location);
+
+        $this->render('admin/brands/locations', [
+            'brand'       => $brand,
+            'locations'   => $locations,
+            'flash_ok'    => $this->getFlash('success'),
+            'flash_error' => $this->getFlash('error'),
+            'csrf_token'  => $this->csrfToken(),
+        ]);
+    }
+
+    public function locationCreate(Request $request, array $params = []): void
+    {
+        $this->requirePermission('manage_brands');
+
+        $brandId    = (int) ($params['id'] ?? 0);
+        $brandModel = new Brand();
+        $brand      = $brandModel->find($brandId);
+
+        if (!$brand) {
+            $this->redirect('/admin/brands');
+        }
+
+        $this->render('admin/brands/location_form', [
+            'brand'       => $brand,
+            'location'    => null,
+            'action'      => '/admin/brands/' . $brandId . '/locations/create',
+            'flash_error' => $this->getFlash('error'),
+            'csrf_token'  => $this->csrfToken(),
+        ]);
+    }
+
+    public function locationStore(Request $request, array $params = []): void
+    {
+        $this->requirePermission('manage_brands');
+        $this->requireCsrf();
+
+        $brandId    = (int) ($params['id'] ?? 0);
+        $brandModel = new Brand();
+        $brand      = $brandModel->find($brandId);
+
+        if (!$brand) {
+            $this->redirect('/admin/brands');
+        }
+
+        $name = trim($request->post('name', ''));
+        $slug = slugify($name);
+
+        if (empty($name)) {
+            $this->setFlash('error', 'O nome da localização é obrigatório.');
+            $this->redirect('/admin/brands/' . $brandId . '/locations/create');
+        }
+
+        $locationModel = new Location();
+        if ($locationModel->slugExistsForBrand($slug, $brandId)) {
+            $this->setFlash('error', 'Já existe uma localização com este nome para esta marca.');
+            $this->redirect('/admin/brands/' . $brandId . '/locations/create');
+        }
+
+        $locationModel->create([
+            'name'     => $name,
+            'slug'     => $slug,
+            'brand_id' => $brandId,
+        ]);
+
+        $me       = $this->auth->user();
+        $auditLog = new AuditLog();
+        $auditLog->log($me['id'], 'location_create', 'location', 0, [
+            'name'  => $name,
+            'brand' => $brand['name'],
+        ]);
+
+        $this->setFlash('success', 'Localização criada com sucesso.');
+        $this->redirect('/admin/brands/' . $brandId . '/locations');
+    }
+
+    public function locationDelete(Request $request, array $params = []): void
+    {
+        $this->requirePermission('manage_brands');
+        $this->requireCsrf();
+
+        $brandId    = (int) ($params['id'] ?? 0);
+        $locationId = (int) ($params['loc_id'] ?? 0);
+
+        $locationModel = new Location();
+        $location      = $locationModel->find($locationId);
+
+        if (!$location || (int) ($location['brand_id'] ?? 0) !== $brandId) {
+            $this->json(['success' => false, 'error' => 'Localização não encontrada.'], 404);
+        }
+
+        $imageModel = new Image();
+        $count      = $imageModel->countByLocation($brandId, $locationId);
+
+        if ($count > 0) {
+            $this->json([
+                'success' => false,
+                'error'   => "Não é possível apagar: tem {$count} imagem(ns) associada(s). Elimine primeiro as fotos.",
+            ], 422);
+        }
+
+        $locationModel->hardDelete($locationId);
+
+        $me       = $this->auth->user();
+        $auditLog = new AuditLog();
+        $auditLog->log($me['id'], 'location_delete', 'location', $locationId, [
+            'name' => $location['name'],
         ]);
 
         $this->json(['success' => true]);

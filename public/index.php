@@ -49,14 +49,13 @@ $router->get('/login', 'AuthController@showLogin');
 $router->post('/login', 'AuthController@doLogin');
 $router->get('/logout', 'AuthController@doLogout');
 
-// Gallery
-$router->get('/', 'GalleryController@index');
+// Brand & Location flow
+$router->get('/', 'BrandController@index');
+$router->get('/brand/:id', 'BrandController@locations');
+$router->get('/brand/:id/location/:loc_id', 'LocationController@photos');
+$router->post('/brand/:id/location/:loc_id/upload', 'LocationController@upload');
+$router->post('/image/:id/delete', 'LocationController@delete');
 $router->get('/image/:id', 'GalleryController@show');
-$router->post('/image/:id/delete', 'GalleryController@delete');
-
-// Upload
-$router->get('/upload', 'UploadController@showForm');
-$router->post('/upload', 'UploadController@handle');
 
 // Download
 $router->get('/download/:id', 'DownloadController@single');
@@ -82,6 +81,12 @@ $router->post('/admin/brands/create', 'AdminController@brandStore');
 $router->get('/admin/brands/:id/edit', 'AdminController@brandEdit');
 $router->post('/admin/brands/:id/edit', 'AdminController@brandUpdate');
 $router->post('/admin/brands/:id/delete', 'AdminController@brandDelete');
+
+// Admin — Locations
+$router->get('/admin/brands/:id/locations', 'AdminController@locationList');
+$router->get('/admin/brands/:id/locations/create', 'AdminController@locationCreate');
+$router->post('/admin/brands/:id/locations/create', 'AdminController@locationStore');
+$router->post('/admin/brands/:id/locations/:loc_id/delete', 'AdminController@locationDelete');
 
 // Admin — Images
 $router->post('/admin/images/:id/restore', 'AdminController@imageRestore');
