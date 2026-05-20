@@ -13,7 +13,7 @@
 <div class="login-layout">
     <div class="login-brand">
         <svg width="48" height="48" viewBox="0 0 48 48" fill="none" aria-hidden="true">
-            <rect width="48" height="48" rx="10" fill="#e94560"/>
+            <rect width="48" height="48" rx="10" fill="#1B6CB2"/>
             <path d="M8 34L17 21l7 9 5.5-7L38 34H8z" fill="white" opacity=".9"/>
             <circle cx="33" cy="15" r="5" fill="white" opacity=".9"/>
         </svg>

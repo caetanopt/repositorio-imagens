@@ -2,10 +2,10 @@
    CSS Variables / Design Tokens
    ============================================================ */
 :root {
-    --primary:      #1a1a2e;
-    --primary-dark: #12121f;
-    --accent:       #e94560;
-    --accent-dark:  #c73652;
+    --primary:      #162347;
+    --primary-dark: #0d1830;
+    --accent:       #1B6CB2;
+    --accent-dark:  #155a96;
     --bg:           #f8f9fa;
     --surface:      #ffffff;
     --border:       #e2e8f0;
@@ -282,7 +282,7 @@ code { font-family: 'SFMono-Regular', Consolas, monospace; font-size: .875em; ba
 
 .sidebar-item.active {
     color: var(--accent);
-    background: rgba(233, 69, 96, .06);
+    background: rgba(27, 108, 178, .06);
     border-left-color: var(--accent);
 }
 
@@ -418,7 +418,7 @@ code { font-family: 'SFMono-Regular', Consolas, monospace; font-size: .875em; ba
 
 .form-input:focus {
     border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(233, 69, 96, .12);
+    box-shadow: 0 0 0 3px rgba(27, 108, 178, .12);
 }
 
 .form-input--readonly {
@@ -722,7 +722,7 @@ code { font-family: 'SFMono-Regular', Consolas, monospace; font-size: .875em; ba
 .image-card-overlay {
     position: absolute;
     inset: 0;
-    background: rgba(26, 26, 46, .55);
+    background: rgba(22, 35, 71, .55);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1026,7 +1026,7 @@ code { font-family: 'SFMono-Regular', Consolas, monospace; font-size: .875em; ba
 
 .dropzone:hover, .dropzone--active {
     border-color: var(--accent);
-    background: rgba(233, 69, 96, .04);
+    background: rgba(27, 108, 178, .04);
 }
 
 .dropzone-icon { margin: 0 auto .75rem; color: var(--text-muted); }
@@ -1384,7 +1384,7 @@ body.lightbox-open { overflow: hidden; }
 
 .conv-image-item:hover { background: var(--bg); }
 
-.conv-image-item.selected { background: rgba(233, 69, 96, .06); }
+.conv-image-item.selected { background: rgba(27, 108, 178, .06); }
 
 .conv-thumb { width: 56px; height: 42px; object-fit: cover; border-radius: var(--radius-sm); flex-shrink: 0; }
 

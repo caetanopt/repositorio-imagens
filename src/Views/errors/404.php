@@ -9,12 +9,12 @@
                height: 100vh; margin: 0; background: #f8f9fa; }
         .box { text-align: center; padding: 3rem 2rem; background: #fff; border-radius: 8px;
                box-shadow: 0 1px 3px rgba(0,0,0,.08); max-width: 400px; width: 90%; }
-        .code { font-size: 6rem; font-weight: 700; color: #e94560; line-height: 1; margin-bottom: .5rem; }
+        .code { font-size: 6rem; font-weight: 700; color: #1B6CB2; line-height: 1; margin-bottom: .5rem; }
         h1 { font-size: 1.25rem; color: #1e293b; margin: 0 0 1rem; }
         p  { color: #64748b; margin: 0 0 1.5rem; font-size: .9rem; }
-        a  { display: inline-block; background: #1a1a2e; color: #fff; padding: .6rem 1.5rem;
+        a  { display: inline-block; background: #162347; color: #fff; padding: .6rem 1.5rem;
              border-radius: 6px; text-decoration: none; font-size: .9rem; }
-        a:hover { background: #e94560; }
+        a:hover { background: #1B6CB2; }
     </style>
 </head>
 <body>

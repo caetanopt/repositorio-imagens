@@ -19,7 +19,7 @@
         </button>
         <a href="<?= url('/') ?>" class="brand-logo">
             <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
-                <rect width="28" height="28" rx="6" fill="#e94560"/>
+                <rect width="28" height="28" rx="6" fill="#1B6CB2"/>
                 <path d="M5 20L10 13l4 5 3-4 6 6H5z" fill="white" opacity=".9"/>
                 <circle cx="19" cy="9" r="3" fill="white" opacity=".9"/>
             </svg>
