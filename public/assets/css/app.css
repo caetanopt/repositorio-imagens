@@ -1531,6 +1531,260 @@ body.lightbox-open { overflow: hidden; }
 }
 
 /* ============================================================
+   Brand Cards
+   ============================================================ */
+.brands-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 1rem;
+}
+
+.brand-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem 1rem;
+    text-align: center;
+    text-decoration: none;
+    color: var(--text);
+    transition: all var(--transition);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: .75rem;
+    cursor: pointer;
+}
+
+.brand-card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+    text-decoration: none;
+    border-color: var(--accent);
+}
+
+.brand-card-icon {
+    width: 52px; height: 52px;
+    background: rgba(27, 108, 178, .1);
+    border-radius: var(--radius-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent);
+}
+
+.brand-card-name { font-size: .95rem; font-weight: 600; }
+
+.brand-card-meta { font-size: .8rem; color: var(--text-muted); }
+
+/* ============================================================
+   Location Cards
+   ============================================================ */
+.locations-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1rem;
+}
+
+.location-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    text-decoration: none;
+    color: var(--text);
+    transition: all var(--transition);
+}
+
+.location-card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
+    text-decoration: none;
+    border-color: var(--accent);
+}
+
+.location-card-thumbnails {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    height: 90px;
+    background: var(--bg);
+}
+
+.location-card-thumb { width: 100%; height: 100%; object-fit: cover; }
+
+.location-card-empty-thumb {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-light);
+    background: var(--bg);
+}
+
+.location-card-info { padding: .75rem 1rem; }
+
+.location-card-name { font-size: .875rem; font-weight: 600; margin-bottom: .35rem; }
+
+.location-card-count {
+    font-size: .78rem;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+}
+
+.location-count-bar {
+    flex: 1;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.location-count-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 2px;
+    transition: width .3s ease;
+}
+
+.location-count-fill--full { background: #10b981; }
+
+/* ============================================================
+   Photo Slots (4-slot grid)
+   ============================================================ */
+.photo-slots {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    max-width: 780px;
+}
+
+.photo-slot { border-radius: var(--radius-lg); overflow: hidden; }
+
+.photo-slot-inner {
+    display: flex;
+    flex-direction: column;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+}
+
+.photo-slot-thumb {
+    position: relative;
+    aspect-ratio: 4/3;
+    overflow: hidden;
+    background: var(--bg);
+}
+
+.photo-slot-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 200ms ease;
+}
+
+.photo-slot--filled:hover .photo-slot-img { transform: scale(1.03); }
+
+.photo-slot-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(22, 35, 71, .58);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: .5rem;
+    opacity: 0;
+    transition: opacity var(--transition);
+}
+
+.photo-slot--filled:hover .photo-slot-overlay { opacity: 1; }
+
+.overlay-btn--danger { background: rgba(239,68,68,.25); border-color: rgba(239,68,68,.4); }
+.overlay-btn--danger:hover { background: rgba(239,68,68,.45); }
+
+.photo-slot-number {
+    position: absolute;
+    top: .5rem; left: .5rem;
+    width: 24px; height: 24px;
+    background: rgba(255,255,255,.9);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: .72rem;
+    font-weight: 700;
+    color: var(--text);
+    z-index: 2;
+}
+
+.photo-slot-meta {
+    padding: .45rem .75rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid var(--border);
+}
+
+.photo-slot-filename {
+    font-size: .75rem;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 70%;
+}
+
+.photo-slot-size { font-size: .72rem; color: var(--text-muted); flex-shrink: 0; }
+
+.photo-slot--empty {
+    aspect-ratio: 4/3;
+    border: 2px dashed var(--border-dark);
+    background: var(--bg);
+    border-radius: var(--radius-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all var(--transition);
+    position: relative;
+}
+
+.photo-slot--empty:not(.photo-slot--readonly):hover {
+    border-color: var(--accent);
+    background: rgba(27, 108, 178, .04);
+}
+
+.photo-slot--empty.drag-over {
+    border-color: var(--accent);
+    background: rgba(27, 108, 178, .08);
+}
+
+.photo-slot--readonly { cursor: default; }
+
+.photo-slot-upload-content {
+    text-align: center;
+    color: var(--text-muted);
+    padding: 1rem;
+    pointer-events: none;
+}
+
+.photo-slot-upload-text { font-size: .8rem; font-weight: 500; margin: .4rem 0 .2rem; }
+.photo-slot-upload-hint { font-size: .7rem; color: var(--text-light); }
+
+.photo-slot-uploading {
+    position: absolute;
+    inset: 0;
+    background: rgba(255,255,255,.9);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: .5rem;
+    border-radius: var(--radius-lg);
+}
+
+/* ============================================================
    Mobile Responsive
    ============================================================ */
 @media (max-width: 1024px) {

@@ -50,6 +50,9 @@ require_once __DIR__ . '/../../layout/header.php';
                     <td><code class="code-path">/storage/images/<?= e($brand['slug']) ?>/</code></td>
                     <td class="table-date"><?= e(date('d/m/Y', strtotime($brand['created_at']))) ?></td>
                     <td class="table-actions">
+                        <a href="<?= url('/admin/brands/' . $brand['id'] . '/locations') ?>" class="btn btn-xs btn-secondary">
+                            Localizações
+                        </a>
                         <a href="<?= url('/admin/brands/' . $brand['id'] . '/edit') ?>" class="btn btn-xs btn-secondary">
                             Editar
                         </a>

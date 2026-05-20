@@ -105,12 +105,12 @@
 <div class="app-layout">
     <aside class="sidebar" id="sidebar">
         <nav class="sidebar-nav">
-            <a href="<?= url('/') ?>" class="sidebar-item <?= (($_SERVER['REQUEST_URI'] ?? '/') === '/' || strpos($_SERVER['REQUEST_URI'] ?? '', '/?') === 0) ? 'active' : '' ?>">
+            <a href="<?= url('/') ?>" class="sidebar-item <?= (($_SERVER['REQUEST_URI'] ?? '/') === '/' || preg_match('#^/brand(/|$)#', $_SERVER['REQUEST_URI'] ?? '')) ? 'active' : '' ?>">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
                     <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
                 </svg>
-                <span>Galeria</span>
+                <span>Repositório</span>
             </a>
             <?php if ($auth->can('convert')): ?>
             <a href="<?= url('/converter') ?>" class="sidebar-item <?= strpos($_SERVER['REQUEST_URI'] ?? '', '/converter') === 0 ? 'active' : '' ?>">
