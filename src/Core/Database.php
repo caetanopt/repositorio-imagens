@@ -45,8 +45,7 @@ class Database
         } catch (PDOException $e) {
             error_log('Database connection failed: ' . $e->getMessage());
             http_response_code(503);
-            // Temporary: always show error detail for diagnosis
-            die('DB Error: ' . $e->getMessage() . ' | DSN: ' . preg_replace('/password=[^;]*/', 'password=***', $dsn) . ' | USER: ' . $user);
+            die('Service temporarily unavailable.');
         }
     }
 

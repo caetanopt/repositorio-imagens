@@ -15,14 +15,13 @@ class Brand extends Model
 
     public function slugExists(string $slug, ?int $excludeId = null): bool
     {
-        $sql    = "SELECT COUNT(*) as cnt FROM `brands` WHERE `slug` = ?";
+        $sql    = 'SELECT COUNT(*) AS cnt FROM "brands" WHERE "slug" = ?';
         $params = [$slug];
         if ($excludeId !== null) {
-            $sql    .= " AND `id` != ?";
+            $sql    .= ' AND "id" != ?';
             $params[] = $excludeId;
         }
-        $stmt = $this->db()->query($sql, $params);
-        $row  = $stmt->fetch();
+        $row = $this->db()->query($sql, $params)->fetch();
         return (int) ($row['cnt'] ?? 0) > 0;
     }
 }

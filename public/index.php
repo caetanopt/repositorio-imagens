@@ -5,20 +5,6 @@ declare(strict_types=1);
 // Autoload
 require_once __DIR__ . '/../vendor/autoload.php';
 
-// Temporary server debug — remove after diagnosis
-if (($_SERVER['REQUEST_URI'] ?? '') === '/debug-server') {
-    header('Content-Type: application/json');
-    echo json_encode([
-        'REQUEST_URI'  => $_SERVER['REQUEST_URI']  ?? null,
-        'PATH_INFO'    => $_SERVER['PATH_INFO']    ?? null,
-        'SCRIPT_NAME'  => $_SERVER['SCRIPT_NAME']  ?? null,
-        'PHP_SELF'     => $_SERVER['PHP_SELF']     ?? null,
-        'QUERY_STRING' => $_SERVER['QUERY_STRING'] ?? null,
-        'HTTP_HOST'    => $_SERVER['HTTP_HOST']    ?? null,
-    ]);
-    exit;
-}
-
 // Load .env if present (not available on Vercel — env vars set via dashboard)
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/..');
 $dotenv->safeLoad();

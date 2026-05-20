@@ -10,11 +10,10 @@ class User extends Model
 
     public function findByEmail(string $email): ?array
     {
-        $stmt = $this->db()->query(
-            "SELECT * FROM `users` WHERE `email` = ? LIMIT 1",
+        $row = $this->db()->query(
+            'SELECT * FROM "users" WHERE "email" = ? LIMIT 1',
             [$email]
-        );
-        $row = $stmt->fetch();
+        )->fetch();
         return $row ?: null;
     }
 
@@ -26,7 +25,7 @@ class User extends Model
     public function incrementLoginAttempts(int $id): void
     {
         $this->db()->query(
-            "UPDATE `users` SET `login_attempts` = `login_attempts` + 1 WHERE `id` = ?",
+            'UPDATE "users" SET "login_attempts" = "login_attempts" + 1 WHERE "id" = ?',
             [$id]
         );
     }
@@ -34,17 +33,22 @@ class User extends Model
     public function resetLoginAttempts(int $id): void
     {
         $this->db()->query(
-            "UPDATE `users` SET `login_attempts` = 0, `locked_until` = NULL WHERE `id` = ?",
+            'UPDATE "users" SET "login_attempts" = 0, "locked_until" = NULL WHERE "id" = ?',
             [$id]
         );
     }
 
     public function lockAccount(int $id, int $minutes = 15): void
     {
-        $this->db()->query(
-            "UPDATE `users` SET `locked_until` = DATE_ADD(NOW(), INTERVAL ? MINUTE) WHERE `id` = ?",
-            [$minutes, $id]
-        );
+        if ($this->isPgsql()) {
+            $sql = "UPDATE \"users\" SET \"locked_until\" = NOW() + INTERVAL '{$minutes} minutes' WHERE \"id\" = ?";
+            $this->db()->query($sql, [$id]);
+        } else {
+            $this->db()->query(
+                'UPDATE "users" SET "locked_until" = DATE_ADD(NOW(), INTERVAL ? MINUTE) WHERE "id" = ?',
+                [$minutes, $id]
+            );
+        }
     }
 
     public function isLocked(array $user): bool
@@ -58,34 +62,40 @@ class User extends Model
     public function setRememberToken(int $id, string $token): void
     {
         $this->db()->query(
-            "UPDATE `users` SET `remember_token` = ? WHERE `id` = ?",
+            'UPDATE "users" SET "remember_token" = ? WHERE "id" = ?',
             [$token, $id]
         );
     }
 
     public function findByRememberToken(string $token): ?array
     {
-        $stmt = $this->db()->query(
-            "SELECT * FROM `users` WHERE `remember_token` = ? AND `active` = 1 LIMIT 1",
+        $row = $this->db()->query(
+            'SELECT * FROM "users" WHERE "remember_token" = ? AND "active" = TRUE LIMIT 1',
             [$token]
-        );
-        $row = $stmt->fetch();
+        )->fetch();
         return $row ?: null;
     }
 
     public function clearRememberToken(int $id): void
     {
         $this->db()->query(
-            "UPDATE `users` SET `remember_token` = NULL WHERE `id` = ?",
+            'UPDATE "users" SET "remember_token" = NULL WHERE "id" = ?',
             [$id]
         );
     }
 
     public function toggle(int $id): void
     {
-        $this->db()->query(
-            "UPDATE `users` SET `active` = IF(`active` = 1, 0, 1) WHERE `id` = ?",
-            [$id]
-        );
+        if ($this->isPgsql()) {
+            $this->db()->query(
+                'UPDATE "users" SET "active" = CASE WHEN "active" = TRUE THEN FALSE ELSE TRUE END WHERE "id" = ?',
+                [$id]
+            );
+        } else {
+            $this->db()->query(
+                'UPDATE "users" SET "active" = IF("active" = 1, 0, 1) WHERE "id" = ?',
+                [$id]
+            );
+        }
     }
 }
