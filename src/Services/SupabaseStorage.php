@@ -31,11 +31,18 @@ class SupabaseStorage
     {
         $endpoint = $this->url . '/storage/v1/object/' . $this->bucket . '/' . ltrim($storagePath, '/');
 
+        $fileSize = filesize($localPath);
+        $fh       = fopen($localPath, 'rb');
+        if (!$fh) {
+            throw new \RuntimeException('Cannot open file for upload: ' . $localPath);
+        }
+
         $ch = curl_init($endpoint);
         curl_setopt_array($ch, [
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_POST           => true,
-            CURLOPT_POSTFIELDS     => file_get_contents($localPath),
+            CURLOPT_PUT            => true,
+            CURLOPT_INFILE         => $fh,
+            CURLOPT_INFILESIZE     => $fileSize,
             CURLOPT_HTTPHEADER     => [
                 'Authorization: Bearer ' . $this->key,
                 'apikey: ' . $this->key,
@@ -43,12 +50,14 @@ class SupabaseStorage
                 'x-upsert: true',
             ],
             CURLOPT_SSL_VERIFYPEER => true,
+            CURLOPT_TIMEOUT        => 60,
         ]);
 
         $response = curl_exec($ch);
         $status   = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $error    = curl_error($ch);
         curl_close($ch);
+        fclose($fh);
 
         if ($error) {
             throw new \RuntimeException('Supabase Storage cURL error: ' . $error);
