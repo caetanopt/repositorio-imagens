@@ -69,8 +69,15 @@ class BrandController extends Controller
 
     private function enrichThumb(array $image, string $brandSlug): array
     {
-        $base = rtrim(env('APP_URL', ''), '/') . '/storage/images';
-        $image['thumb_url'] = $base . '/' . $brandSlug . '/' . basename($image['thumb_filepath'] ?? '');
+        $path = $image['thumb_filepath'] ?? '';
+        if (str_starts_with($path, 'http')) {
+            $image['thumb_url'] = $path;
+        } else {
+            $base = rtrim(env('APP_URL', ''), '/') . '/storage/images';
+            $image['thumb_url'] = $path !== ''
+                ? $base . '/' . $brandSlug . '/' . basename($path)
+                : '';
+        }
         return $image;
     }
 }
