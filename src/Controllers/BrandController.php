@@ -54,7 +54,7 @@ class BrandController extends Controller
             $previews = $imageModel->findByLocation($brandId, $location['id']);
             $location['preview_images'] = array_map(
                 fn($img) => $this->enrichThumb($img, $brand['slug']),
-                array_slice($previews, 0, 3)
+                array_slice($previews, 0, 4)
             );
         }
         unset($location);

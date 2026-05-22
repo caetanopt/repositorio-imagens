@@ -54,7 +54,7 @@
                 <div class="location-card-thumbnails">
                     <?php
                     $previews = $loc['preview_images'] ?? [];
-                    for ($i = 0; $i < 3; $i++):
+                    for ($i = 0; $i < 4; $i++):
                         $thumbUrl = $previews[$i]['thumb_url'] ?? '';
                         if (!empty($thumbUrl)):
                     ?>
