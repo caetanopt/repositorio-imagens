@@ -40,16 +40,25 @@ class LocationController extends Controller
         }
         unset($img);
 
+        // Load all brand locations for the sidebar
+        $locationModel  = new Location();
+        $brandLocations = $locationModel->findByBrand($brand['id']);
+        foreach ($brandLocations as &$loc) {
+            $loc['image_count'] = $imageModel->countByLocation($brand['id'], $loc['id']);
+        }
+        unset($loc);
+
         $this->render('locations/photos', [
-            'brand'           => $brand,
-            'location'        => $location,
-            'images'          => $images,
-            'max_photos'      => self::MAX_PHOTOS,
-            'slots_available' => max(0, self::MAX_PHOTOS - count($images)),
-            'pageTitle'       => $location['name'] . ' — ' . $brand['name'],
-            'flash_ok'        => $this->getFlash('success'),
-            'flash_error'     => $this->getFlash('error'),
-            'csrf_token'      => $this->csrfToken(),
+            'brand'             => $brand,
+            'location'          => $location,
+            'images'            => $images,
+            'brandLocations'    => $brandLocations,
+            'max_photos'        => self::MAX_PHOTOS,
+            'slots_available'   => max(0, self::MAX_PHOTOS - count($images)),
+            'pageTitle'         => $location['name'] . ' — ' . $brand['name'],
+            'flash_ok'          => $this->getFlash('success'),
+            'flash_error'       => $this->getFlash('error'),
+            'csrf_token'        => $this->csrfToken(),
         ]);
     }
 

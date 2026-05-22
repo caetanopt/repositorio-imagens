@@ -1841,3 +1841,108 @@ body.lightbox-open { overflow: hidden; }
 @media (max-width: 480px) {
     .image-grid { grid-template-columns: 1fr; }
 }
+
+/* ============================================================
+   Brand Layout (sidebar + content)
+   ============================================================ */
+.brand-layout {
+    display: grid;
+    grid-template-columns: 210px 1fr;
+    gap: 1.5rem;
+    align-items: start;
+}
+
+.brand-content { min-width: 0; }
+
+/* ─── Brand Sidebar ───────────────────────────────────────── */
+.brand-sidebar {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    position: sticky;
+    top: calc(var(--navbar-h) + 1rem);
+}
+
+.brand-sidebar-header {
+    padding: .75rem 1rem;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+}
+
+.brand-sidebar-brand-link {
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+    font-size: .8rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    text-decoration: none;
+    transition: color var(--transition);
+}
+
+.brand-sidebar-brand-link:hover { color: var(--accent); text-decoration: none; }
+
+.brand-sidebar-brand-link svg { flex-shrink: 0; }
+
+.brand-sidebar-item {
+    display: flex;
+    flex-direction: column;
+    padding: .65rem 1rem;
+    border-left: 3px solid transparent;
+    text-decoration: none;
+    color: var(--text);
+    transition: all var(--transition);
+    border-bottom: 1px solid var(--border);
+    gap: .3rem;
+}
+
+.brand-sidebar-item:last-child { border-bottom: none; }
+
+.brand-sidebar-item:hover {
+    background: var(--bg);
+    text-decoration: none;
+}
+
+.brand-sidebar-item--active {
+    background: rgba(27, 108, 178, .06);
+    border-left-color: var(--accent);
+}
+
+.brand-sidebar-item-name {
+    font-size: .875rem;
+    font-weight: 500;
+    color: var(--text);
+}
+
+.brand-sidebar-item--active .brand-sidebar-item-name { color: var(--accent); }
+
+.brand-sidebar-item-count {
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+}
+
+.brand-sidebar-item-num {
+    font-size: .72rem;
+    color: var(--text-muted);
+    flex-shrink: 0;
+    width: 24px;
+}
+
+.brand-sidebar-empty {
+    padding: 1rem;
+    font-size: .8rem;
+    color: var(--text-muted);
+    text-align: center;
+}
+
+/* Responsive brand layout */
+@media (max-width: 768px) {
+    .brand-layout { grid-template-columns: 1fr; }
+    .brand-sidebar { position: static; }
+    .brand-sidebar-item { flex-direction: row; align-items: center; gap: .75rem; }
+    .brand-sidebar-item-count { flex: 1; }
+}

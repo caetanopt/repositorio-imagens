@@ -39,40 +39,47 @@
     <?php endif; ?>
 </div>
 <?php else: ?>
-<div class="locations-grid">
-    <?php foreach ($locations as $loc): ?>
-    <a href="<?= url('/brand/' . $brand['id'] . '/location/' . $loc['id']) ?>" class="location-card">
-        <div class="location-card-thumbnails">
-            <?php
-            $previews = $loc['preview_images'] ?? [];
-            for ($i = 0; $i < 3; $i++):
-                if (!empty($previews[$i])):
-            ?>
-            <img src="<?= e($previews[$i]['thumb_url']) ?>"
-                 alt="<?= e($previews[$i]['original_filename'] ?? '') ?>"
-                 class="location-card-thumb" loading="lazy">
-            <?php else: ?>
-            <div class="location-card-empty-thumb">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                    <rect x="3" y="3" width="18" height="18" rx="2"/>
-                    <circle cx="8.5" cy="8.5" r="1.5"/>
-                    <polyline points="21 15 16 10 5 21"/>
-                </svg>
-            </div>
-            <?php endif; endfor; ?>
-        </div>
-        <div class="location-card-info">
-            <div class="location-card-name"><?= e($loc['name']) ?></div>
-            <div class="location-card-count">
-                <span><?= e($loc['image_count']) ?> / 4</span>
-                <div class="location-count-bar">
-                    <div class="location-count-fill <?= $loc['image_count'] >= 4 ? 'location-count-fill--full' : '' ?>"
-                         style="width:<?= e(($loc['image_count'] / 4) * 100) ?>%"></div>
+<?php $brandLocations = $locations; ?>
+<div class="brand-layout">
+    <?php require_once __DIR__ . '/../layout/_brand_sidebar.php'; ?>
+
+    <div class="brand-content">
+        <div class="locations-grid">
+            <?php foreach ($locations as $loc): ?>
+            <a href="<?= url('/brand/' . $brand['id'] . '/location/' . $loc['id']) ?>" class="location-card">
+                <div class="location-card-thumbnails">
+                    <?php
+                    $previews = $loc['preview_images'] ?? [];
+                    for ($i = 0; $i < 3; $i++):
+                        if (!empty($previews[$i])):
+                    ?>
+                    <img src="<?= e($previews[$i]['thumb_url']) ?>"
+                         alt="<?= e($previews[$i]['original_filename'] ?? '') ?>"
+                         class="location-card-thumb" loading="lazy">
+                    <?php else: ?>
+                    <div class="location-card-empty-thumb">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <rect x="3" y="3" width="18" height="18" rx="2"/>
+                            <circle cx="8.5" cy="8.5" r="1.5"/>
+                            <polyline points="21 15 16 10 5 21"/>
+                        </svg>
+                    </div>
+                    <?php endif; endfor; ?>
                 </div>
-            </div>
+                <div class="location-card-info">
+                    <div class="location-card-name"><?= e($loc['name']) ?></div>
+                    <div class="location-card-count">
+                        <span><?= e($loc['image_count']) ?> / 4</span>
+                        <div class="location-count-bar">
+                            <div class="location-count-fill <?= $loc['image_count'] >= 4 ? 'location-count-fill--full' : '' ?>"
+                                 style="width:<?= e(($loc['image_count'] / 4) * 100) ?>%"></div>
+                        </div>
+                    </div>
+                </div>
+            </a>
+            <?php endforeach; ?>
         </div>
-    </a>
-    <?php endforeach; ?>
+    </div>
 </div>
 <?php endif; ?>
 

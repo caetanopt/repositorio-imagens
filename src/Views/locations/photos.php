@@ -20,6 +20,10 @@
 <div class="alert alert-error" role="alert"><?= e($flash_error) ?></div>
 <?php endif; ?>
 
+<div class="brand-layout">
+<?php $currentLocationId = $location['id']; require_once __DIR__ . '/../layout/_brand_sidebar.php'; ?>
+
+<div class="brand-content">
 <div class="photo-slots" id="photoSlots">
     <?php
     $uploadUrl = url('/brand/' . $brand['id'] . '/location/' . $location['id'] . '/upload');
@@ -198,5 +202,7 @@
     });
 })();
 </script>
+</div><!-- /.brand-content -->
+</div><!-- /.brand-layout -->
 
 <?php require_once __DIR__ . '/../layout/footer.php'; ?>
