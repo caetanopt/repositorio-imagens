@@ -9,6 +9,7 @@ use App\Models\Brand;
 use App\Models\Image;
 use App\Models\Location;
 use App\Services\ImageService;
+use App\Services\SupabaseStorage;
 
 class LocationController extends Controller
 {
@@ -32,9 +33,9 @@ class LocationController extends Controller
         $base       = rtrim(env('APP_URL', ''), '/') . '/storage/images/' . $brand['slug'];
 
         foreach ($images as &$img) {
-            $img['thumb_url']     = $base . '/' . basename($img['thumb_filepath']     ?? '');
-            $img['optimized_url'] = $base . '/' . basename($img['filepath']           ?? '');
-            $img['original_url']  = $base . '/' . basename($img['original_filepath']  ?? '');
+            $img['thumb_url']     = $this->resolveUrl($img['thumb_filepath']    ?? '', $base);
+            $img['optimized_url'] = $this->resolveUrl($img['filepath']          ?? '', $base);
+            $img['original_url']  = $this->resolveUrl($img['original_filepath'] ?? '', $base);
             $img['download_url']  = '/download/' . $img['id'];
             $img['filesize_human']= formatBytes((int) ($img['filesize'] ?? 0));
         }
@@ -118,12 +119,37 @@ class LocationController extends Controller
         $user    = $this->auth->user();
         $userId  = (!empty($user['id']) && $user['id'] > 0) ? $user['id'] : null;
 
+        // Upload to Supabase Storage if configured; otherwise keep local paths
+        $storage = new SupabaseStorage();
+        if ($storage->isConfigured()) {
+            $slug        = $brand['slug'];
+            $storedThumb = $storage->upload(
+                $result['thumb_path'],
+                $slug . '/' . basename($result['thumb_path']),
+                'image/jpeg'
+            );
+            $storedOptimized = $storage->upload(
+                $result['optimized_path'],
+                $slug . '/' . basename($result['optimized_path']),
+                $result['mime_type']
+            );
+            $storedOriginal = $storage->upload(
+                $result['original_path'],
+                $slug . '/' . basename($result['original_path']),
+                $result['mime_type']
+            );
+        } else {
+            $storedThumb     = $result['thumb_path'];
+            $storedOptimized = $result['optimized_path'];
+            $storedOriginal  = $result['original_path'];
+        }
+
         $imageId = $imageModel->create([
             'filename'           => $result['filename'],
             'original_filename'  => $file['name'],
-            'filepath'           => $result['optimized_path'],
-            'original_filepath'  => $result['original_path'],
-            'thumb_filepath'     => $result['thumb_path'],
+            'filepath'           => $storedOptimized,
+            'original_filepath'  => $storedOriginal,
+            'thumb_filepath'     => $storedThumb,
             'filesize'           => $result['optimized_size'],
             'original_filesize'  => $result['original_size'],
             'optimized_filesize' => $result['optimized_size'],
@@ -148,8 +174,8 @@ class LocationController extends Controller
         $this->json([
             'success'           => true,
             'image_id'          => $imageId,
-            'thumb_url'         => $base . '/' . basename($result['thumb_path']),
-            'optimized_url'     => $base . '/' . basename($result['optimized_path']),
+            'thumb_url'         => $this->resolveUrl($storedThumb, $base),
+            'optimized_url'     => $this->resolveUrl($storedOptimized, $base),
             'original_filename' => $file['name'],
             'filesize_human'    => formatBytes($result['optimized_size']),
             'download_url'      => '/download/' . $imageId,
@@ -185,6 +211,14 @@ class LocationController extends Controller
         ]);
 
         $this->json(['success' => true]);
+    }
+
+    private function resolveUrl(string $path, string $base): string
+    {
+        if (str_starts_with($path, 'http')) {
+            return $path;
+        }
+        return $path !== '' ? $base . '/' . basename($path) : '';
     }
 
     private function loadBrandLocation(int $brandId, int $locationId): array

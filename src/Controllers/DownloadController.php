@@ -46,15 +46,6 @@ class DownloadController extends Controller
             $fileName = $image['filename'];
         }
 
-        // Resolve absolute path
-        $absPath = $this->resolvePath($filePath, $storageBase, $brandSlug);
-
-        if (!file_exists($absPath)) {
-            http_response_code(404);
-            echo 'Ficheiro não encontrado no sistema de ficheiros.';
-            exit;
-        }
-
         // Log download
         $user = $this->auth->user();
         $auditLog = new AuditLog();
@@ -62,6 +53,21 @@ class DownloadController extends Controller
             'version'  => $version,
             'filename' => $fileName,
         ]);
+
+        // If stored as a URL (Supabase Storage), redirect
+        if (str_starts_with($filePath, 'http')) {
+            header('Location: ' . $filePath);
+            exit;
+        }
+
+        // Resolve absolute path for local/disk storage
+        $absPath = $this->resolvePath($filePath, $storageBase, $brandSlug);
+
+        if (!file_exists($absPath)) {
+            http_response_code(404);
+            echo 'Ficheiro não encontrado no sistema de ficheiros.';
+            exit;
+        }
 
         // Stream file
         $this->streamFile($absPath, $fileName);
