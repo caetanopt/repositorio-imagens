@@ -56,20 +56,22 @@ class ImageService
             throw new \RuntimeException("Unsupported MIME type: {$mime}");
         }
 
-        // Generate unique base filename
-        $baseName     = uuid4();
-        $origFilename = 'original_' . $baseName . '.' . self::ALLOWED_MIMES[$mime];
-        $origPath     = $destDir . '/' . $origFilename;
-
-        // Copy original untouched
-        copy($sourcePath, $origPath);
+        $baseName = uuid4();
 
         if ($this->useImagick) {
+            $origFilename = 'original_' . $baseName . '.' . self::ALLOWED_MIMES[$mime];
+            $origPath     = $destDir . '/' . $origFilename;
+            copy($sourcePath, $origPath);
             $result = $this->optimizeWithImagick($sourcePath, $destDir, $baseName, $mime);
         } elseif ($this->useGd) {
+            $origFilename = 'original_' . $baseName . '.' . self::ALLOWED_MIMES[$mime];
+            $origPath     = $destDir . '/' . $origFilename;
+            copy($sourcePath, $origPath);
             $result = $this->optimizeWithGd($sourcePath, $destDir, $baseName, $mime);
         } else {
-            $result = $this->storeAsIs($sourcePath, $destDir, $baseName, $mime);
+            // No image library available — store one copy and reuse for all variants
+            $result   = $this->storeAsIs($sourcePath, $destDir, $baseName, $mime);
+            $origPath = $result['optimized_path'];
         }
 
         $optimizedSize = filesize($result['optimized_path']);
@@ -91,24 +93,18 @@ class ImageService
         $ext         = self::ALLOWED_MIMES[$mime] ?? 'jpg';
         $outFilename = $baseName . '.' . $ext;
         $outPath     = $destDir . '/' . $outFilename;
-        $thumbFilename = 'thumb_' . $baseName . '.' . $ext;
-        $thumbPath   = $destDir . '/' . $thumbFilename;
 
         copy($sourcePath, $outPath);
-        copy($sourcePath, $thumbPath);
 
-        // Try to get dimensions without GD
         $size = @getimagesize($sourcePath);
-        $w = $size[0] ?? 0;
-        $h = $size[1] ?? 0;
 
         return [
             'optimized_path' => $outPath,
-            'thumb_path'     => $thumbPath,
+            'thumb_path'     => $outPath,
             'filename'       => $outFilename,
-            'thumb_filename' => $thumbFilename,
-            'width'          => $w,
-            'height'         => $h,
+            'thumb_filename' => $outFilename,
+            'width'          => $size[0] ?? 0,
+            'height'         => $size[1] ?? 0,
         ];
     }
 

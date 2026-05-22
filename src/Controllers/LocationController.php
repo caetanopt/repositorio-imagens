@@ -138,26 +138,31 @@ class LocationController extends Controller
         $user    = $this->auth->user();
         $userId  = (!empty($user['id']) && $user['id'] > 0) ? $user['id'] : null;
 
-        // Upload to Supabase Storage if configured; otherwise keep local paths
+        // Upload to Supabase Storage if configured; otherwise keep local paths.
+        // Deduplicate: when no image processing is available all 3 variants are
+        // the same physical file — upload once and reuse the resulting URL.
         $storage = new SupabaseStorage();
         if ($storage->isConfigured()) {
             try {
-                $slug        = $brand['slug'];
-                $storedThumb = $storage->upload(
-                    $result['thumb_path'],
-                    $slug . '/' . basename($result['thumb_path']),
-                    'image/jpeg'
-                );
-                $storedOptimized = $storage->upload(
-                    $result['optimized_path'],
-                    $slug . '/' . basename($result['optimized_path']),
-                    $result['mime_type']
-                );
-                $storedOriginal = $storage->upload(
-                    $result['original_path'],
-                    $slug . '/' . basename($result['original_path']),
-                    $result['mime_type']
-                );
+                $slug            = $brand['slug'];
+                $uploadedPaths   = [];
+
+                $uploadOnce = function (string $localPath, string $mime) use ($storage, $slug, &$uploadedPaths): string {
+                    if (isset($uploadedPaths[$localPath])) {
+                        return $uploadedPaths[$localPath];
+                    }
+                    $url = $storage->upload(
+                        $localPath,
+                        $slug . '/' . basename($localPath),
+                        $mime
+                    );
+                    $uploadedPaths[$localPath] = $url;
+                    return $url;
+                };
+
+                $storedThumb     = $uploadOnce($result['thumb_path'],     'image/jpeg');
+                $storedOptimized = $uploadOnce($result['optimized_path'], $result['mime_type']);
+                $storedOriginal  = $uploadOnce($result['original_path'],  $result['mime_type']);
             } catch (\Throwable $e) {
                 error_log('SupabaseStorage::upload failed: ' . $e->getMessage());
                 $this->json(['success' => false, 'error' => 'Erro ao guardar imagem: ' . $e->getMessage()], 500);
