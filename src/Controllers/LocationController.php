@@ -134,22 +134,27 @@ class LocationController extends Controller
         // Upload to Supabase Storage if configured; otherwise keep local paths
         $storage = new SupabaseStorage();
         if ($storage->isConfigured()) {
-            $slug        = $brand['slug'];
-            $storedThumb = $storage->upload(
-                $result['thumb_path'],
-                $slug . '/' . basename($result['thumb_path']),
-                'image/jpeg'
-            );
-            $storedOptimized = $storage->upload(
-                $result['optimized_path'],
-                $slug . '/' . basename($result['optimized_path']),
-                $result['mime_type']
-            );
-            $storedOriginal = $storage->upload(
-                $result['original_path'],
-                $slug . '/' . basename($result['original_path']),
-                $result['mime_type']
-            );
+            try {
+                $slug        = $brand['slug'];
+                $storedThumb = $storage->upload(
+                    $result['thumb_path'],
+                    $slug . '/' . basename($result['thumb_path']),
+                    'image/jpeg'
+                );
+                $storedOptimized = $storage->upload(
+                    $result['optimized_path'],
+                    $slug . '/' . basename($result['optimized_path']),
+                    $result['mime_type']
+                );
+                $storedOriginal = $storage->upload(
+                    $result['original_path'],
+                    $slug . '/' . basename($result['original_path']),
+                    $result['mime_type']
+                );
+            } catch (\Throwable $e) {
+                error_log('SupabaseStorage::upload failed: ' . $e->getMessage());
+                $this->json(['success' => false, 'error' => 'Erro ao guardar imagem: ' . $e->getMessage()], 500);
+            }
         } else {
             $storedThumb     = $result['thumb_path'];
             $storedOptimized = $result['optimized_path'];
