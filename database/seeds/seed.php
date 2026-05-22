@@ -85,6 +85,9 @@ $brands = [
     'BMW'      => 'bmw',
     'Mercedes' => 'mercedes',
     'Seat'     => 'seat',
+    'BYD'      => 'byd',
+    'Nissan'   => 'nissan',
+    'Audi'     => 'audi',
 ];
 
 $storageBase = $_ENV['STORAGE_PATH'] ?? $rootDir . '/storage/images';
