@@ -10,7 +10,10 @@ class SupabaseStorage
 
     public function __construct()
     {
-        $this->url    = rtrim((string) env('SUPABASE_URL', ''), '/');
+        // Strip any path — only scheme+host needed (e.g. https://xxx.supabase.co)
+        $raw = rtrim((string) env('SUPABASE_URL', ''), '/');
+        $parsed = parse_url($raw);
+        $this->url = ($parsed['scheme'] ?? 'https') . '://' . ($parsed['host'] ?? '');
         $this->key    = (string) env('SUPABASE_SERVICE_ROLE_KEY', '');
         $this->bucket = (string) env('SUPABASE_STORAGE_BUCKET', 'images');
     }
