@@ -178,7 +178,7 @@ class Image extends Model
         return $this->db()->query(
             'SELECT i.*, u.name AS uploader_name
              FROM "images" i
-             INNER JOIN "users" u ON u.id = i.uploaded_by
+             LEFT JOIN "users" u ON u.id = i.uploaded_by
              WHERE i.brand_id = ? AND i.location_id = ? AND i.deleted_at IS NULL
              ORDER BY i.created_at ASC',
             [$brandId, $locationId]
