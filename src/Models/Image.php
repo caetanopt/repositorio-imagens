@@ -21,7 +21,7 @@ class Image extends Model
              FROM images i
              INNER JOIN brands    b ON b.id = i.brand_id
              INNER JOIN locations l ON l.id = i.location_id
-             INNER JOIN users     u ON u.id = i.uploaded_by
+             LEFT  JOIN users     u ON u.id = i.uploaded_by
              WHERE i.id = ?",
             [$id]
         );
@@ -51,7 +51,7 @@ class Image extends Model
                 FROM images i
                 INNER JOIN brands    b ON b.id = i.brand_id
                 INNER JOIN locations l ON l.id = i.location_id
-                INNER JOIN users     u ON u.id = i.uploaded_by";
+                LEFT  JOIN users     u ON u.id = i.uploaded_by";
 
         if (!empty($where)) {
             $sql .= ' WHERE ' . implode(' AND ', $where);
@@ -71,7 +71,7 @@ class Image extends Model
                 FROM images i
                 INNER JOIN brands    b ON b.id = i.brand_id
                 INNER JOIN locations l ON l.id = i.location_id
-                INNER JOIN users     u ON u.id = i.uploaded_by";
+                LEFT  JOIN users     u ON u.id = i.uploaded_by";
 
         if (!empty($where)) {
             $sql .= ' WHERE ' . implode(' AND ', $where);
@@ -137,7 +137,7 @@ class Image extends Model
              FROM images i
              INNER JOIN brands    b ON b.id = i.brand_id
              INNER JOIN locations l ON l.id = i.location_id
-             INNER JOIN users     u ON u.id = i.uploaded_by
+             LEFT  JOIN users     u ON u.id = i.uploaded_by
              WHERE i.deleted_at IS NOT NULL
              ORDER BY i.deleted_at DESC"
         );
@@ -158,6 +158,7 @@ class Image extends Model
              FROM images i
              INNER JOIN brands    b ON b.id = i.brand_id
              INNER JOIN locations l ON l.id = i.location_id
+             LEFT  JOIN users     u ON u.id = i.uploaded_by
              WHERE i.id IN ({$placeholders}) AND i.deleted_at IS NULL",
             $ids
         );
