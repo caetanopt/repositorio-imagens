@@ -15,6 +15,11 @@ class AuditLog extends Model
         ?int $entityId = null,
         ?array $detail = null
     ): int {
+        // Skip audit log when auth is disabled (no real user in DB)
+        if (!$userId) {
+            return 0;
+        }
+
         return $this->create([
             'user_id'     => $userId,
             'action'      => $action,
