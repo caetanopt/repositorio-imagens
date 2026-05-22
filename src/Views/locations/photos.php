@@ -119,6 +119,72 @@ $slotNames = [
     <?php endif; ?>
     <?php endfor; ?>
 </div>
+</div><!-- /.brand-content -->
+</div><!-- /.brand-layout -->
+
+<div id="lightbox" class="lightbox" role="dialog" aria-modal="true">
+    <button class="lightbox-close" aria-label="Fechar">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+    </button>
+    <div class="lightbox-inner">
+        <img id="lightboxImg" src="" alt="" class="lightbox-img">
+        <p id="lightboxCaption" class="lightbox-caption"></p>
+    </div>
+</div>
+
+<style>
+.lightbox {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.85);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+}
+.lightbox--open { display: flex; }
+.lightbox-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 90vw;
+    max-height: 90vh;
+    gap: .75rem;
+}
+.lightbox-img {
+    max-width: 100%;
+    max-height: calc(90vh - 3rem);
+    object-fit: contain;
+    border-radius: 8px;
+    box-shadow: 0 8px 40px rgba(0,0,0,.5);
+}
+.lightbox-caption {
+    color: rgba(255,255,255,.75);
+    font-size: .85rem;
+    text-align: center;
+    margin: 0;
+}
+.lightbox-close {
+    position: fixed;
+    top: 1.25rem;
+    right: 1.25rem;
+    background: rgba(255,255,255,.15);
+    border: none;
+    border-radius: 50%;
+    width: 2.5rem;
+    height: 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #fff;
+    transition: background .15s;
+}
+.lightbox-close:hover { background: rgba(255,255,255,.3); }
+</style>
 
 <script>
 (function () {
@@ -197,7 +263,7 @@ $slotNames = [
 
     document.querySelectorAll('[data-lightbox]').forEach(btn => {
         btn.addEventListener('click', () => {
-            lbImg.src         = btn.dataset.lightbox;
+            lbImg.src             = btn.dataset.lightbox;
             lbCaption.textContent = btn.dataset.caption ?? '';
             lb.classList.add('lightbox--open');
             document.body.style.overflow = 'hidden';
@@ -247,71 +313,5 @@ $slotNames = [
     });
 })();
 </script>
-</div><!-- /.brand-content -->
-</div><!-- /.brand-layout -->
-
-<div id="lightbox" class="lightbox" role="dialog" aria-modal="true">
-    <button class="lightbox-close" aria-label="Fechar">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-        </svg>
-    </button>
-    <div class="lightbox-inner">
-        <img id="lightboxImg" src="" alt="" class="lightbox-img">
-        <p id="lightboxCaption" class="lightbox-caption"></p>
-    </div>
-</div>
-
-<style>
-.lightbox {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,.85);
-    z-index: 1000;
-    align-items: center;
-    justify-content: center;
-    padding: 1.5rem;
-}
-.lightbox--open { display: flex; }
-.lightbox-inner {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    max-width: 90vw;
-    max-height: 90vh;
-    gap: .75rem;
-}
-.lightbox-img {
-    max-width: 100%;
-    max-height: calc(90vh - 3rem);
-    object-fit: contain;
-    border-radius: 8px;
-    box-shadow: 0 8px 40px rgba(0,0,0,.5);
-}
-.lightbox-caption {
-    color: rgba(255,255,255,.75);
-    font-size: .85rem;
-    text-align: center;
-    margin: 0;
-}
-.lightbox-close {
-    position: fixed;
-    top: 1.25rem;
-    right: 1.25rem;
-    background: rgba(255,255,255,.15);
-    border: none;
-    border-radius: 50%;
-    width: 2.5rem;
-    height: 2.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    color: #fff;
-    transition: background .15s;
-}
-.lightbox-close:hover { background: rgba(255,255,255,.3); }
-</style>
 
 <?php require_once __DIR__ . '/../layout/footer.php'; ?>
