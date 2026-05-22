@@ -61,17 +61,24 @@ class LocationController extends Controller
         }
         unset($loc);
 
+        $storage          = new SupabaseStorage();
+        $useDirectUpload  = $storage->isConfigured();
+        $locBase          = '/brand/' . $brand['id'] . '/location/' . $location['id'];
+
         $this->render('locations/photos', [
-            'brand'             => $brand,
-            'location'          => $location,
-            'images'            => $images,
-            'brandLocations'    => $brandLocations,
-            'max_photos'        => self::MAX_PHOTOS,
-            'slots_available'   => max(0, self::MAX_PHOTOS - count($slotMap)),
-            'pageTitle'         => $location['name'] . ' — ' . $brand['name'],
-            'flash_ok'          => $this->getFlash('success'),
-            'flash_error'       => $this->getFlash('error'),
-            'csrf_token'        => $this->csrfToken(),
+            'brand'              => $brand,
+            'location'           => $location,
+            'images'             => $images,
+            'brandLocations'     => $brandLocations,
+            'max_photos'         => self::MAX_PHOTOS,
+            'slots_available'    => max(0, self::MAX_PHOTOS - count($slotMap)),
+            'pageTitle'          => $location['name'] . ' — ' . $brand['name'],
+            'flash_ok'           => $this->getFlash('success'),
+            'flash_error'        => $this->getFlash('error'),
+            'csrf_token'         => $this->csrfToken(),
+            'use_direct_upload'  => $useDirectUpload,
+            'upload_sign_url'    => url($locBase . '/upload/sign'),
+            'upload_confirm_url' => url($locBase . '/upload/confirm'),
         ]);
     }
 
@@ -198,6 +205,112 @@ class LocationController extends Controller
             'optimized_url'     => $this->resolveUrl($storedOptimized, $base),
             'original_filename' => $file['name'],
             'filesize_human'    => formatBytes($result['optimized_size']),
+            'download_url'      => '/download/' . $imageId,
+        ]);
+    }
+
+    public function uploadSign(Request $request, array $params = []): void
+    {
+        $this->requirePermission('upload');
+        $this->requireCsrf();
+
+        [$brand, $location] = $this->loadBrandLocation(
+            (int) ($params['id']     ?? 0),
+            (int) ($params['loc_id'] ?? 0)
+        );
+
+        $imageModel   = new Image();
+        $currentCount = $imageModel->countByLocation($brand['id'], $location['id']);
+        if ($currentCount >= self::MAX_PHOTOS) {
+            $this->json(['success' => false, 'error' => 'Limite de ' . self::MAX_PHOTOS . ' fotos atingido.'], 422);
+        }
+
+        $mime   = $request->post('mime', 'image/jpeg');
+        $extMap = ['image/jpeg' => 'jpg', 'image/jpg' => 'jpg', 'image/png' => 'png',
+                   'image/gif'  => 'gif', 'image/webp' => 'webp', 'image/bmp' => 'bmp'];
+        $ext    = $extMap[$mime] ?? 'jpg';
+
+        $storage = new SupabaseStorage();
+        if (!$storage->isConfigured()) {
+            $this->json(['success' => false, 'error' => 'Storage não configurado.'], 500);
+        }
+
+        try {
+            $baseName  = uuid4();
+            $path      = $brand['slug'] . '/' . $baseName . '.' . $ext;
+            $signed    = $storage->createSignedUploadUrl($path);
+        } catch (\Throwable $e) {
+            $this->json(['success' => false, 'error' => 'Erro ao gerar URL: ' . $e->getMessage()], 500);
+        }
+
+        $this->json([
+            'success'    => true,
+            'signed_url' => $signed['signed_url'],
+            'public_url' => $signed['public_url'],
+            'filename'   => $baseName . '.' . $ext,
+        ]);
+    }
+
+    public function uploadConfirm(Request $request, array $params = []): void
+    {
+        $this->requirePermission('upload');
+        $this->requireCsrf();
+
+        [$brand, $location] = $this->loadBrandLocation(
+            (int) ($params['id']     ?? 0),
+            (int) ($params['loc_id'] ?? 0)
+        );
+
+        $publicUrl        = $request->post('public_url', '');
+        $originalFilename = $request->post('original_filename', '');
+        $filename         = $request->post('filename', '');
+        $filesize         = (int) $request->post('filesize', 0);
+        $width            = (int) $request->post('width', 0);
+        $height           = (int) $request->post('height', 0);
+        $mime             = $request->post('mime', 'image/jpeg');
+        $slot             = max(1, min(self::MAX_PHOTOS, (int) $request->post('slot', 0)));
+
+        if (!str_starts_with($publicUrl, 'http')) {
+            $this->json(['success' => false, 'error' => 'URL inválido.'], 422);
+        }
+
+        $user   = $this->auth->user();
+        $userId = (!empty($user['id']) && $user['id'] > 0) ? $user['id'] : null;
+
+        $imageModel = new Image();
+        $imageId    = $imageModel->create([
+            'filename'           => $filename,
+            'original_filename'  => $originalFilename,
+            'filepath'           => $publicUrl,
+            'original_filepath'  => $publicUrl,
+            'thumb_filepath'     => $publicUrl,
+            'filesize'           => $filesize,
+            'original_filesize'  => $filesize,
+            'optimized_filesize' => $filesize,
+            'optimization_ratio' => 0,
+            'width'              => $width,
+            'height'             => $height,
+            'mime_type'          => $mime,
+            'brand_id'           => $brand['id'],
+            'location_id'        => $location['id'],
+            'uploaded_by'        => $userId,
+            'slot'               => $slot ?: null,
+        ]);
+
+        $auditLog = new AuditLog();
+        $auditLog->log($user['id'], 'upload', 'image', $imageId, [
+            'original_filename' => $originalFilename,
+            'brand'             => $brand['name'],
+            'location'          => $location['name'],
+        ]);
+
+        $this->json([
+            'success'           => true,
+            'image_id'          => $imageId,
+            'thumb_url'         => $publicUrl,
+            'optimized_url'     => $publicUrl,
+            'original_filename' => $originalFilename,
+            'filesize_human'    => formatBytes($filesize),
             'download_url'      => '/download/' . $imageId,
         ]);
     }

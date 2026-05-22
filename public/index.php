@@ -54,6 +54,8 @@ $router->get('/', 'BrandController@index');
 $router->get('/brand/:id', 'BrandController@locations');
 $router->get('/brand/:id/location/:loc_id', 'LocationController@photos');
 $router->post('/brand/:id/location/:loc_id/upload', 'LocationController@upload');
+$router->post('/brand/:id/location/:loc_id/upload/sign', 'LocationController@uploadSign');
+$router->post('/brand/:id/location/:loc_id/upload/confirm', 'LocationController@uploadConfirm');
 $router->post('/image/:id/delete', 'LocationController@delete');
 $router->get('/image/:id', 'GalleryController@show');
 

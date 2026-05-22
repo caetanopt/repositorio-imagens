@@ -18,6 +18,42 @@ class SupabaseStorage
         $this->bucket = (string) env('SUPABASE_STORAGE_BUCKET', 'images');
     }
 
+    /**
+     * Create a signed URL so the browser can upload directly to Supabase.
+     * Returns ['signed_url' => '...', 'public_url' => '...']
+     */
+    public function createSignedUploadUrl(string $storagePath): array
+    {
+        $endpoint = $this->url . '/storage/v1/object/upload/sign/' . $this->bucket . '/' . ltrim($storagePath, '/');
+
+        $ch = curl_init($endpoint);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_POST           => true,
+            CURLOPT_POSTFIELDS     => '{}',
+            CURLOPT_HTTPHEADER     => [
+                'Authorization: Bearer ' . $this->key,
+                'apikey: ' . $this->key,
+                'Content-Type: application/json',
+            ],
+            CURLOPT_SSL_VERIFYPEER => true,
+        ]);
+
+        $response = curl_exec($ch);
+        $status   = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($status < 200 || $status >= 300) {
+            throw new \RuntimeException('Signed URL creation failed (' . $status . '): ' . $response);
+        }
+
+        $data = json_decode($response, true);
+        return [
+            'signed_url' => $this->url . ($data['url'] ?? ''),
+            'public_url' => $this->publicUrl($storagePath),
+        ];
+    }
+
     public function isConfigured(): bool
     {
         return $this->url !== '' && $this->key !== '';

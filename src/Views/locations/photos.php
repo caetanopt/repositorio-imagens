@@ -189,8 +189,11 @@ $slotNames = [
 
 <script>
 (function () {
-    const uploadUrl = '<?= e($uploadUrl) ?>';
-    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
+    const uploadUrl        = '<?= e($uploadUrl) ?>';
+    const useDirectUpload  = <?= json_encode($use_direct_upload) ?>;
+    const uploadSignUrl    = '<?= e($upload_sign_url) ?>';
+    const uploadConfirmUrl = '<?= e($upload_confirm_url) ?>';
+    const csrfToken        = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
 
     function showToast(msg, type) {
         const tc = document.getElementById('toastContainer');
@@ -203,20 +206,75 @@ $slotNames = [
         setTimeout(() => { t.classList.remove('toast--visible'); setTimeout(() => t.remove(), 300); }, 3500);
     }
 
+    function getImageDimensions(file) {
+        return new Promise((resolve) => {
+            const url = URL.createObjectURL(file);
+            const img = new Image();
+            img.onload  = () => { resolve({ width: img.naturalWidth, height: img.naturalHeight }); URL.revokeObjectURL(url); };
+            img.onerror = () => resolve({ width: 0, height: 0 });
+            img.src = url;
+        });
+    }
+
+    async function uploadDirect(file, slotIndex, slotNumber) {
+        // Step 1 — get signed URL from PHP
+        const signFd = new FormData();
+        signFd.append('mime',       file.type);
+        signFd.append('slot',       slotNumber);
+        signFd.append('csrf_token', csrfToken);
+
+        const signRes  = await fetch(uploadSignUrl, { method: 'POST', body: signFd });
+        const signData = await signRes.json();
+        if (!signData.success) throw new Error(signData.error || 'Erro ao iniciar upload.');
+
+        // Step 2 — upload directly to Supabase (bypasses Vercel body limit)
+        const putRes = await fetch(signData.signed_url, {
+            method:  'PUT',
+            headers: { 'Content-Type': file.type },
+            body:    file,
+        });
+        if (!putRes.ok) throw new Error('Erro ao transferir ficheiro para o storage.');
+
+        // Step 3 — get dimensions client-side
+        const dims = await getImageDimensions(file);
+
+        // Step 4 — confirm to PHP so it saves to DB
+        const confirmFd = new FormData();
+        confirmFd.append('public_url',        signData.public_url);
+        confirmFd.append('filename',          signData.filename);
+        confirmFd.append('original_filename', file.name);
+        confirmFd.append('filesize',          file.size);
+        confirmFd.append('width',             dims.width);
+        confirmFd.append('height',            dims.height);
+        confirmFd.append('mime',              file.type);
+        confirmFd.append('slot',              slotNumber);
+        confirmFd.append('csrf_token',        csrfToken);
+
+        const confirmRes  = await fetch(uploadConfirmUrl, { method: 'POST', body: confirmFd });
+        const confirmData = await confirmRes.json();
+        if (!confirmData.success) throw new Error(confirmData.error || 'Erro ao registar imagem.');
+
+        return confirmData;
+    }
+
     async function uploadFile(file, slotIndex, slotNumber) {
         const uploading = document.getElementById('uploading-' + slotIndex);
         const content   = document.getElementById('uploadContent-' + slotIndex);
         if (uploading) { uploading.style.display = 'flex'; }
         if (content)   { content.style.display   = 'none'; }
 
-        const fd = new FormData();
-        fd.append('image', file);
-        fd.append('slot', slotNumber);
-        fd.append('csrf_token', csrfToken);
-
         try {
-            const res  = await fetch(uploadUrl, { method: 'POST', body: fd });
-            const data = await res.json();
+            let data;
+            if (useDirectUpload) {
+                data = await uploadDirect(file, slotIndex, slotNumber);
+            } else {
+                const fd = new FormData();
+                fd.append('image', file);
+                fd.append('slot',  slotNumber);
+                fd.append('csrf_token', csrfToken);
+                const res = await fetch(uploadUrl, { method: 'POST', body: fd });
+                data = await res.json();
+            }
 
             if (data.success) {
                 showToast('Foto carregada com sucesso.', 'success');
@@ -227,7 +285,7 @@ $slotNames = [
                 if (content)   content.style.display   = '';
             }
         } catch (e) {
-            showToast('Erro de comunicação.', 'error');
+            showToast(e.message || 'Erro de comunicação.', 'error');
             if (uploading) uploading.style.display = 'none';
             if (content)   content.style.display   = '';
         }
