@@ -1813,16 +1813,11 @@ body.lightbox-open { overflow: hidden; }
     margin-bottom: 2rem;
 }
 
-.repo-hero-wordmark {
+.repo-hero-logo {
     display: block;
-    font-family: 'Nunito', 'Inter', sans-serif;
-    font-weight: 800;
-    font-size: 3.5rem;
-    letter-spacing: -.04em;
-    color: var(--primary);
-    line-height: 1;
-    margin-bottom: .75rem;
-    user-select: none;
+    width: 220px;
+    height: auto;
+    margin: 0 auto .75rem;
 }
 
 .repo-hero-title {
