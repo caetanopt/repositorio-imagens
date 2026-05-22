@@ -1,17 +1,20 @@
 <?php require_once __DIR__ . '/../../layout/header.php'; ?>
 
-<div class="page-header">
-    <div class="page-header-left">
-        <a href="<?= url('/admin/brands') ?>" class="back-link">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                <path d="m15 18-6-6 6-6"/>
-            </svg>
-            Marcas
-        </a>
-        <h1 class="page-title">Localizações — <?= e($brand['name']) ?></h1>
-        <span class="total-count"><?= e(count($locations)) ?> localizações</span>
-    </div>
-    <div class="page-header-right">
+<div class="brand-header">
+    <a href="<?= url('/brand/' . $brand['id']) ?>" class="brand-header-back">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="m15 18-6-6 6-6"/>
+        </svg>
+        <?= e($brand['name']) ?>
+    </a>
+    <div class="brand-header-body">
+        <div class="brand-header-identity">
+            <div class="brand-header-monogram"><?= e(mb_substr($brand['name'], 0, 1)) ?></div>
+            <div>
+                <h1 class="brand-header-name">Localizações</h1>
+                <p class="brand-header-meta"><?= e(count($locations)) ?> <?= count($locations) === 1 ? 'localização' : 'localizações' ?></p>
+            </div>
+        </div>
         <a href="<?= url('/admin/brands/' . $brand['id'] . '/locations/create') ?>" class="btn btn-primary">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                 <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
