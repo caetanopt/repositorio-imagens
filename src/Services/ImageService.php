@@ -26,9 +26,12 @@ class ImageService
         'image/tiff' => 'tiff',
     ];
 
+    private bool $useGd;
+
     public function __construct()
     {
         $this->useImagick = extension_loaded('imagick');
+        $this->useGd      = function_exists('imagecreatefromjpeg');
     }
 
     /**
@@ -63,8 +66,10 @@ class ImageService
 
         if ($this->useImagick) {
             $result = $this->optimizeWithImagick($sourcePath, $destDir, $baseName, $mime);
-        } else {
+        } elseif ($this->useGd) {
             $result = $this->optimizeWithGd($sourcePath, $destDir, $baseName, $mime);
+        } else {
+            $result = $this->storeAsIs($sourcePath, $destDir, $baseName, $mime);
         }
 
         $optimizedSize = filesize($result['optimized_path']);
@@ -79,6 +84,32 @@ class ImageService
             'ratio'          => $ratio,
             'mime_type'      => $mime,
         ]);
+    }
+
+    private function storeAsIs(string $sourcePath, string $destDir, string $baseName, string $mime): array
+    {
+        $ext         = self::ALLOWED_MIMES[$mime] ?? 'jpg';
+        $outFilename = $baseName . '.' . $ext;
+        $outPath     = $destDir . '/' . $outFilename;
+        $thumbFilename = 'thumb_' . $baseName . '.' . $ext;
+        $thumbPath   = $destDir . '/' . $thumbFilename;
+
+        copy($sourcePath, $outPath);
+        copy($sourcePath, $thumbPath);
+
+        // Try to get dimensions without GD
+        $size = @getimagesize($sourcePath);
+        $w = $size[0] ?? 0;
+        $h = $size[1] ?? 0;
+
+        return [
+            'optimized_path' => $outPath,
+            'thumb_path'     => $thumbPath,
+            'filename'       => $outFilename,
+            'thumb_filename' => $thumbFilename,
+            'width'          => $w,
+            'height'         => $h,
+        ];
     }
 
     private function optimizeWithGd(string $sourcePath, string $destDir, string $baseName, string $mime): array
@@ -240,7 +271,12 @@ class ImageService
             return $this->convertWithImagick($sourcePath, $outPath, $format, $quality, $maxWidth);
         }
 
-        return $this->convertWithGd($sourcePath, $outPath, $mime, $format, $quality, $maxWidth);
+        if ($this->useGd) {
+            return $this->convertWithGd($sourcePath, $outPath, $mime, $format, $quality, $maxWidth);
+        }
+
+        copy($sourcePath, $outPath);
+        return $outPath;
     }
 
     private function convertWithGd(
@@ -335,8 +371,10 @@ class ImageService
 
         if ($this->useImagick) {
             $this->generateThumbImagick($sourcePath, $outPath, $w, $h);
-        } else {
+        } elseif ($this->useGd) {
             $this->generateThumbGd($sourcePath, $outPath, $w, $h);
+        } else {
+            copy($sourcePath, $outPath);
         }
 
         return $outPath;

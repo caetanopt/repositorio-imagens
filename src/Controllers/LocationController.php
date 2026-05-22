@@ -112,7 +112,7 @@ class LocationController extends Controller
             $result = $svc->optimize($file['tmp_name'], $destDir);
         } catch (\Throwable $e) {
             error_log('ImageService::optimize failed: ' . $e->getMessage());
-            $this->json(['success' => false, 'error' => $e->getMessage()], 500);
+            $this->json(['success' => false, 'error' => 'Erro ao processar imagem: ' . $e->getMessage()], 500);
         }
 
         $user    = $this->auth->user();
