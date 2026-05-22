@@ -41,11 +41,12 @@ $slotNames = [
 <div class="photo-slots" id="photoSlots">
     <?php
     $uploadUrl = url('/brand/' . $brand['id'] . '/location/' . $location['id'] . '/upload');
-    $canUpload = $auth->can('upload') && count($images) < $max_photos;
+    $canUpload = $auth->can('upload') && count($images) < $max_photos; // $images is slot map (assoc array)
     $canDelete = $auth->can('delete_any') || $auth->can('delete_own');
     ?>
 
-    <?php foreach ($images as $i => $img): ?>
+    <?php for ($s = 1; $s <= $max_photos; $s++): ?>
+    <?php if (isset($images[$s])): $img = $images[$s]; ?>
     <div class="photo-slot photo-slot--filled" data-image-id="<?= e($img['id']) ?>">
         <div class="photo-slot-inner">
             <div class="photo-slot-thumb">
@@ -71,31 +72,28 @@ $slotNames = [
                     </button>
                     <?php endif; ?>
                 </div>
-                <span class="photo-slot-number"><?= $i + 1 ?></span>
+                <span class="photo-slot-number"><?= $s ?></span>
             </div>
             <div class="photo-slot-meta">
-                <span class="photo-slot-label"><?= e($slotNames[$i + 1] ?? 'Slot ' . ($i + 1)) ?></span>
+                <span class="photo-slot-label"><?= e($slotNames[$s] ?? 'Slot ' . $s) ?></span>
                 <span class="photo-slot-size"><?= e($img['filesize_human']) ?></span>
             </div>
         </div>
     </div>
-    <?php endforeach; ?>
-
-    <?php for ($i = count($images); $i < $max_photos; $i++): ?>
-    <?php if ($canUpload): ?>
-    <div class="photo-slot photo-slot--empty" data-slot="<?= $i + 1 ?>" id="slot-<?= $i ?>">
-        <input type="file" id="fileInput-<?= $i ?>" accept="image/jpeg,image/png,image/webp,image/gif" hidden>
-        <div class="photo-slot-uploading" id="uploading-<?= $i ?>">
+    <?php elseif ($canUpload): ?>
+    <div class="photo-slot photo-slot--empty" data-slot="<?= $s ?>" id="slot-<?= $s - 1 ?>">
+        <input type="file" id="fileInput-<?= $s - 1 ?>" accept="image/jpeg,image/png,image/webp,image/gif" hidden>
+        <div class="photo-slot-uploading" id="uploading-<?= $s - 1 ?>">
             <div class="spinner" style="border-top-color: var(--accent)"></div>
             <span style="font-size:.8rem;color:var(--text-muted)">A carregar...</span>
         </div>
-        <div class="photo-slot-upload-content" id="uploadContent-<?= $i ?>">
+        <div class="photo-slot-upload-content" id="uploadContent-<?= $s - 1 ?>">
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
                 <polyline points="17 8 12 3 7 8"/>
                 <line x1="12" y1="3" x2="12" y2="15"/>
             </svg>
-            <p class="photo-slot-upload-text"><?= e($slotNames[$i + 1] ?? 'Slot ' . ($i + 1)) ?></p>
+            <p class="photo-slot-upload-text"><?= e($slotNames[$s] ?? 'Slot ' . $s) ?></p>
             <p class="photo-slot-upload-hint">Clique ou arraste</p>
         </div>
     </div>
@@ -107,7 +105,7 @@ $slotNames = [
                 <circle cx="8.5" cy="8.5" r="1.5"/>
                 <polyline points="21 15 16 10 5 21"/>
             </svg>
-            <p class="photo-slot-upload-text"><?= e($slotNames[$i + 1] ?? 'Slot ' . ($i + 1)) ?></p>
+            <p class="photo-slot-upload-text"><?= e($slotNames[$s] ?? 'Slot ' . $s) ?></p>
             <p class="photo-slot-upload-hint">Vazio</p>
         </div>
     </div>
@@ -131,7 +129,7 @@ $slotNames = [
         setTimeout(() => { t.classList.remove('toast--visible'); setTimeout(() => t.remove(), 300); }, 3500);
     }
 
-    async function uploadFile(file, slotIndex) {
+    async function uploadFile(file, slotIndex, slotNumber) {
         const uploading = document.getElementById('uploading-' + slotIndex);
         const content   = document.getElementById('uploadContent-' + slotIndex);
         if (uploading) { uploading.style.display = 'flex'; }
@@ -139,6 +137,7 @@ $slotNames = [
 
         const fd = new FormData();
         fd.append('image', file);
+        fd.append('slot', slotNumber);
         fd.append('csrf_token', csrfToken);
 
         try {
@@ -161,8 +160,9 @@ $slotNames = [
     }
 
     document.querySelectorAll('.photo-slot--empty:not(.photo-slot--readonly)').forEach((slot) => {
-        const idx   = slot.dataset.slot - 1;
-        const input = document.getElementById('fileInput-' + idx);
+        const slotNum = parseInt(slot.dataset.slot, 10);
+        const idx     = slotNum - 1;
+        const input   = document.getElementById('fileInput-' + idx);
 
         slot.addEventListener('click', (e) => {
             if (!e.target.closest('input')) input?.click();
@@ -170,7 +170,7 @@ $slotNames = [
 
         input?.addEventListener('change', (e) => {
             const file = e.target.files[0];
-            if (file) uploadFile(file, idx);
+            if (file) uploadFile(file, idx, slotNum);
         });
 
         slot.addEventListener('dragover', (e) => { e.preventDefault(); slot.classList.add('drag-over'); });
@@ -179,7 +179,7 @@ $slotNames = [
             e.preventDefault();
             slot.classList.remove('drag-over');
             const file = e.dataTransfer.files[0];
-            if (file) uploadFile(file, idx);
+            if (file) uploadFile(file, idx, slotNum);
         });
     });
 

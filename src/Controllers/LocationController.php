@@ -29,17 +29,29 @@ class LocationController extends Controller
         );
 
         $imageModel = new Image();
-        $images     = $imageModel->findByLocation($brand['id'], $location['id']);
+        $rawImages  = $imageModel->findByLocation($brand['id'], $location['id']);
         $base       = rtrim(env('APP_URL', ''), '/') . '/storage/images/' . $brand['slug'];
 
-        foreach ($images as &$img) {
+        // Build slot map: slot number (1-4) → image row
+        $slotMap = [];
+        foreach ($rawImages as $img) {
             $img['thumb_url']     = $this->resolveUrl($img['thumb_filepath']    ?? '', $base);
             $img['optimized_url'] = $this->resolveUrl($img['filepath']          ?? '', $base);
             $img['original_url']  = $this->resolveUrl($img['original_filepath'] ?? '', $base);
             $img['download_url']  = '/download/' . $img['id'];
             $img['filesize_human']= formatBytes((int) ($img['filesize'] ?? 0));
+
+            $s = (int) ($img['slot'] ?? 0);
+            if ($s >= 1 && $s <= self::MAX_PHOTOS && !isset($slotMap[$s])) {
+                $slotMap[$s] = $img;
+            } else {
+                // Legacy image without slot — put in first free slot
+                for ($n = 1; $n <= self::MAX_PHOTOS; $n++) {
+                    if (!isset($slotMap[$n])) { $slotMap[$n] = $img; break; }
+                }
+            }
         }
-        unset($img);
+        $images = $slotMap;
 
         // Load all brand locations for the sidebar
         $locationModel  = new Location();
@@ -55,7 +67,7 @@ class LocationController extends Controller
             'images'            => $images,
             'brandLocations'    => $brandLocations,
             'max_photos'        => self::MAX_PHOTOS,
-            'slots_available'   => max(0, self::MAX_PHOTOS - count($images)),
+            'slots_available'   => max(0, self::MAX_PHOTOS - count($slotMap)),
             'pageTitle'         => $location['name'] . ' — ' . $brand['name'],
             'flash_ok'          => $this->getFlash('success'),
             'flash_error'       => $this->getFlash('error'),
@@ -144,6 +156,8 @@ class LocationController extends Controller
             $storedOriginal  = $result['original_path'];
         }
 
+        $slot = max(1, min(self::MAX_PHOTOS, (int) $request->post('slot', 0)));
+
         $imageId = $imageModel->create([
             'filename'           => $result['filename'],
             'original_filename'  => $file['name'],
@@ -160,6 +174,7 @@ class LocationController extends Controller
             'brand_id'           => $brand['id'],
             'location_id'        => $location['id'],
             'uploaded_by'        => $userId,
+            'slot'               => $slot ?: null,
         ]);
 
         $auditLog = new AuditLog();
