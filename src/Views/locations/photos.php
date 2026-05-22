@@ -315,30 +315,44 @@ $slotNames = [
 
     const uploadMaxMb = <?= (int) env('UPLOAD_MAX_SIZE_MB', 4) ?>;
 
+    let pendingUploads    = 0;
+    let successfulUploads = 0;
+
+    function checkReload() {
+        if (pendingUploads === 0 && successfulUploads > 0) {
+            setTimeout(() => location.reload(), 800);
+        }
+    }
+
     async function uploadFile(file, slotIndex, slotNumber) {
         const uploading = document.getElementById('uploading-' + slotIndex);
         const content   = document.getElementById('uploadContent-' + slotIndex);
-        if (uploading) { uploading.style.display = 'flex'; }
-        if (content)   { content.style.display   = 'none'; }
+
+        function restoreSlot() {
+            if (uploading) uploading.style.display = 'none';
+            if (content)   content.style.display   = '';
+        }
+
+        if (uploading) uploading.style.display = 'flex';
+        if (content)   content.style.display   = 'none';
 
         // Always optimise: resize to max 1920px and compress to JPEG at good quality
         if (file.type.startsWith('image/') && file.type !== 'image/gif') {
             try {
-                const original = file;
                 file = await optimiseImage(file);
                 if (file.size > uploadMaxMb * 1024 * 1024) {
                     showToast('Não foi possível comprimir a imagem abaixo de ' + uploadMaxMb + ' MB.', 'error');
-                    if (uploading) uploading.style.display = 'none';
-                    if (content)   content.style.display   = '';
+                    restoreSlot();
                     return;
                 }
             } catch (e) {
                 showToast(e.message || 'Erro ao optimizar imagem.', 'error');
-                if (uploading) uploading.style.display = 'none';
-                if (content)   content.style.display   = '';
+                restoreSlot();
                 return;
             }
         }
+
+        pendingUploads++;
 
         try {
             let data;
@@ -355,18 +369,19 @@ $slotNames = [
             }
 
             if (data.success) {
+                successfulUploads++;
                 showToast('Foto carregada com sucesso.', 'success');
-                setTimeout(() => location.reload(), 800);
             } else {
                 showToast(data.error || 'Erro no upload.', 'error');
-                if (uploading) uploading.style.display = 'none';
-                if (content)   content.style.display   = '';
+                restoreSlot();
             }
         } catch (e) {
             showToast(e.message || 'Erro de comunicação.', 'error');
-            if (uploading) uploading.style.display = 'none';
-            if (content)   content.style.display   = '';
+            restoreSlot();
         }
+
+        pendingUploads--;
+        checkReload();
     }
 
     document.querySelectorAll('.photo-slot--empty:not(.photo-slot--readonly)').forEach((slot) => {
