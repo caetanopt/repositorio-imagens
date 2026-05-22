@@ -62,7 +62,7 @@ class LocationController extends Controller
         unset($loc);
 
         $storage          = new SupabaseStorage();
-        $useDirectUpload  = $storage->isConfigured();
+        $useDirectUpload  = false; // Browser→Supabase direct upload blocked by CORS on free plan
         $locBase          = '/brand/' . $brand['id'] . '/location/' . $location['id'];
 
         $this->render('locations/photos', [
