@@ -1746,7 +1746,8 @@ body.lightbox-open { overflow: hidden; }
     border-top: 1px solid var(--border);
 }
 
-.photo-slot-filename {
+.photo-slot-filename,
+.photo-slot-label {
     font-size: .75rem;
     font-weight: 500;
     white-space: nowrap;

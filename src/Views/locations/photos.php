@@ -1,15 +1,29 @@
 <?php require_once __DIR__ . '/../layout/header.php'; ?>
 
-<div class="page-header">
-    <div class="page-header-left">
-        <a href="<?= url('/brand/' . $brand['id']) ?>" class="back-link">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                <path d="m15 18-6-6 6-6"/>
-            </svg>
-            <?= e($brand['name']) ?>
-        </a>
-        <h1 class="page-title"><?= e($location['name']) ?></h1>
-        <span class="total-count"><?= e(count($images)) ?> / <?= e($max_photos) ?> fotos</span>
+<?php
+$slotNames = [
+    1 => 'Foto da Fachada',
+    2 => 'Foto do Showroom',
+    3 => 'Foto de Oficina — Exterior',
+    4 => 'Foto de Oficina — Interior',
+];
+?>
+
+<div class="brand-header">
+    <a href="<?= url('/brand/' . $brand['id']) ?>" class="brand-header-back">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="m15 18-6-6 6-6"/>
+        </svg>
+        <?= e($brand['name']) ?>
+    </a>
+    <div class="brand-header-body">
+        <div class="brand-header-identity">
+            <div class="brand-header-monogram"><?= e(mb_substr($brand['name'], 0, 1)) ?></div>
+            <div>
+                <h1 class="brand-header-name"><?= e($location['name']) ?></h1>
+                <p class="brand-header-meta"><?= e(count($images)) ?> / <?= e($max_photos) ?> fotos</p>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -60,11 +74,7 @@
                 <span class="photo-slot-number"><?= $i + 1 ?></span>
             </div>
             <div class="photo-slot-meta">
-                <span class="photo-slot-filename" title="<?= e($img['original_filename']) ?>">
-                    <?= e(mb_strlen($img['original_filename']) > 24
-                        ? mb_substr($img['original_filename'], 0, 21) . '...'
-                        : $img['original_filename']) ?>
-                </span>
+                <span class="photo-slot-label"><?= e($slotNames[$i + 1] ?? 'Slot ' . ($i + 1)) ?></span>
                 <span class="photo-slot-size"><?= e($img['filesize_human']) ?></span>
             </div>
         </div>
@@ -85,7 +95,7 @@
                 <polyline points="17 8 12 3 7 8"/>
                 <line x1="12" y1="3" x2="12" y2="15"/>
             </svg>
-            <p class="photo-slot-upload-text">Slot <?= $i + 1 ?></p>
+            <p class="photo-slot-upload-text"><?= e($slotNames[$i + 1] ?? 'Slot ' . ($i + 1)) ?></p>
             <p class="photo-slot-upload-hint">Clique ou arraste</p>
         </div>
     </div>
@@ -97,7 +107,7 @@
                 <circle cx="8.5" cy="8.5" r="1.5"/>
                 <polyline points="21 15 16 10 5 21"/>
             </svg>
-            <p class="photo-slot-upload-text">Slot <?= $i + 1 ?></p>
+            <p class="photo-slot-upload-text"><?= e($slotNames[$i + 1] ?? 'Slot ' . ($i + 1)) ?></p>
             <p class="photo-slot-upload-hint">Vazio</p>
         </div>
     </div>
@@ -150,7 +160,6 @@
         }
     }
 
-    // Bind upload slots
     document.querySelectorAll('.photo-slot--empty:not(.photo-slot--readonly)').forEach((slot) => {
         const idx   = slot.dataset.slot - 1;
         const input = document.getElementById('fileInput-' + idx);
@@ -174,7 +183,6 @@
         });
     });
 
-    // Delete buttons
     document.querySelectorAll('[data-delete-image]').forEach(btn => {
         btn.addEventListener('click', async function (e) {
             e.preventDefault();
