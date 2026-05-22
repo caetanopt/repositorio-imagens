@@ -55,7 +55,8 @@ $slotNames = [
                      class="photo-slot-img" loading="lazy">
                 <div class="photo-slot-overlay">
                     <button class="overlay-btn" title="Ver imagem"
-                            data-lightbox="<?= e($img['optimized_url']) ?>">
+                            data-lightbox="<?= e($img['optimized_url']) ?>"
+                            data-caption="<?= e($slotNames[$s] ?? 'Slot ' . $s) ?>">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                             <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
                         </svg>
@@ -129,6 +130,7 @@ $slotNames = [
     </button>
     <div class="lightbox-inner">
         <img id="lightboxImg" src="" alt="" class="lightbox-img">
+        <p id="lightboxCaption" class="lightbox-caption"></p>
     </div>
 </div>
 
@@ -255,12 +257,14 @@ $slotNames = [
     });
 
     // Lightbox
-    const lb    = document.getElementById('lightbox');
-    const lbImg = document.getElementById('lightboxImg');
+    const lb        = document.getElementById('lightbox');
+    const lbImg     = document.getElementById('lightboxImg');
+    const lbCaption = document.getElementById('lightboxCaption');
 
     document.querySelectorAll('[data-lightbox]').forEach(btn => {
         btn.addEventListener('click', () => {
-            lbImg.src = btn.dataset.lightbox;
+            lbImg.src             = btn.dataset.lightbox;
+            lbCaption.textContent = btn.dataset.caption ?? '';
             lb.classList.add('lightbox--open');
             document.body.style.overflow = 'hidden';
         });
