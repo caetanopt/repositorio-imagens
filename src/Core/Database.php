@@ -27,7 +27,9 @@ class Database
         $options = [
             PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-            PDO::ATTR_EMULATE_PREPARES   => false,
+            // Supabase uses PgBouncer in transaction mode which does not support
+            // server-side prepared statements — emulate them client-side instead.
+            PDO::ATTR_EMULATE_PREPARES   => true,
         ];
 
         if ($this->driver === 'mysql') {
