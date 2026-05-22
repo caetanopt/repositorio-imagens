@@ -54,10 +54,9 @@ class DownloadController extends Controller
             'filename' => $fileName,
         ]);
 
-        // If stored as a URL (Supabase Storage), redirect
+        // If stored as a URL (Supabase Storage), proxy it with attachment header
         if (str_starts_with($filePath, 'http')) {
-            header('Location: ' . $filePath);
-            exit;
+            $this->proxyRemoteFile($filePath, $image['original_filename']);
         }
 
         // Resolve absolute path for local/disk storage
@@ -112,6 +111,36 @@ class DownloadController extends Controller
 
         $filename = 'imagens_' . date('Ymd_His') . '.zip';
         $this->streamFile($zipPath, $filename, 'application/zip', true);
+    }
+
+    private function proxyRemoteFile(string $url, string $originalFilename): never
+    {
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_SSL_VERIFYPEER => true,
+            CURLOPT_TIMEOUT        => 30,
+        ]);
+        $body   = curl_exec($ch);
+        $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $mime   = curl_getinfo($ch, CURLINFO_CONTENT_TYPE) ?: 'application/octet-stream';
+        curl_close($ch);
+
+        if ($body === false || $status !== 200) {
+            http_response_code(502);
+            echo 'Erro ao obter o ficheiro.';
+            exit;
+        }
+
+        while (ob_get_level()) ob_end_clean();
+
+        header('Content-Type: ' . $mime);
+        header('Content-Disposition: attachment; filename="' . addslashes($originalFilename) . '"');
+        header('Content-Length: ' . strlen($body));
+        header('Cache-Control: no-cache');
+        echo $body;
+        exit;
     }
 
     private function resolvePath(string $filePath, string $storageBase, string $brandSlug): string

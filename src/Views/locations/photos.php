@@ -61,7 +61,7 @@ $slotNames = [
                             <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
                         </svg>
                     </button>
-                    <a href="<?= e($img['download_url']) ?>" class="overlay-btn" title="Transferir" download>
+                    <a href="<?= e($img['download_url']) ?>" class="overlay-btn" title="Transferir">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                             <polyline points="7 10 12 15 17 10"/>
                             <line x1="12" y1="15" x2="12" y2="3"/>
