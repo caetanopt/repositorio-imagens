@@ -206,6 +206,51 @@ $slotNames = [
         setTimeout(() => { t.classList.remove('toast--visible'); setTimeout(() => t.remove(), 300); }, 3500);
     }
 
+    async function optimiseImage(file) {
+        const MAX_PX   = 1920;
+        const MAX_BYTES = uploadMaxMb * 1024 * 1024;
+        const MIME     = 'image/jpeg';
+
+        return new Promise((resolve, reject) => {
+            const url = URL.createObjectURL(file);
+            const img = new Image();
+            img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Não foi possível ler a imagem.')); };
+            img.onload  = () => {
+                URL.revokeObjectURL(url);
+
+                // Calculate new dimensions (never upscale)
+                let w = img.naturalWidth;
+                let h = img.naturalHeight;
+                if (w > MAX_PX) { h = Math.round(h * MAX_PX / w); w = MAX_PX; }
+
+                const canvas = document.createElement('canvas');
+                canvas.width  = w;
+                canvas.height = h;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, w, h);
+
+                // Try decreasing quality until under limit
+                const qualities = [0.90, 0.82, 0.72, 0.60, 0.45];
+                let idx = 0;
+
+                function tryQuality() {
+                    const q = qualities[idx++];
+                    canvas.toBlob(blob => {
+                        if (!blob) { reject(new Error('Erro ao processar imagem.')); return; }
+                        if (blob.size <= MAX_BYTES || idx >= qualities.length) {
+                            const name = file.name.replace(/\.[^.]+$/, '.jpg');
+                            resolve(new File([blob], name, { type: MIME }));
+                        } else {
+                            tryQuality();
+                        }
+                    }, MIME, q);
+                }
+                tryQuality();
+            };
+            img.src = url;
+        });
+    }
+
     function getImageDimensions(file) {
         return new Promise((resolve) => {
             const url = URL.createObjectURL(file);
@@ -271,15 +316,29 @@ $slotNames = [
     const uploadMaxMb = <?= (int) env('UPLOAD_MAX_SIZE_MB', 4) ?>;
 
     async function uploadFile(file, slotIndex, slotNumber) {
-        if (file.size > uploadMaxMb * 1024 * 1024) {
-            showToast('Ficheiro demasiado grande. Máximo: ' + uploadMaxMb + ' MB.', 'error');
-            return;
-        }
-
         const uploading = document.getElementById('uploading-' + slotIndex);
         const content   = document.getElementById('uploadContent-' + slotIndex);
         if (uploading) { uploading.style.display = 'flex'; }
         if (content)   { content.style.display   = 'none'; }
+
+        // Optimise before upload: resize to max 1920px and compress if needed
+        if (file.type.startsWith('image/') && file.type !== 'image/gif') {
+            try {
+                const original = file;
+                file = await optimiseImage(file);
+                if (file.size > uploadMaxMb * 1024 * 1024) {
+                    showToast('Não foi possível comprimir a imagem abaixo de ' + uploadMaxMb + ' MB.', 'error');
+                    if (uploading) uploading.style.display = 'none';
+                    if (content)   content.style.display   = '';
+                    return;
+                }
+            } catch (e) {
+                showToast(e.message || 'Erro ao optimizar imagem.', 'error');
+                if (uploading) uploading.style.display = 'none';
+                if (content)   content.style.display   = '';
+                return;
+            }
+        }
 
         try {
             let data;
