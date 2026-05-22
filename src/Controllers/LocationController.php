@@ -338,6 +338,25 @@ class LocationController extends Controller
 
         $imageModel->softDelete($id);
 
+        // Delete files from Supabase Storage
+        $storage = new SupabaseStorage();
+        if ($storage->isConfigured()) {
+            $paths = array_unique(array_filter([
+                $image['filepath']          ?? '',
+                $image['thumb_filepath']    ?? '',
+                $image['original_filepath'] ?? '',
+            ], fn($p) => str_starts_with($p, 'http')));
+
+            if (!empty($paths)) {
+                $storagePaths = array_map([$storage, 'pathFromUrl'], $paths);
+                try {
+                    $storage->delete($storagePaths);
+                } catch (\Throwable $e) {
+                    error_log('SupabaseStorage::delete failed: ' . $e->getMessage());
+                }
+            }
+        }
+
         $auditLog = new AuditLog();
         $auditLog->log($user['id'], 'image_delete', 'image', $id, [
             'filename' => $image['original_filename'],
