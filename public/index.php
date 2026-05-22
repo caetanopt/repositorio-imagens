@@ -57,6 +57,9 @@ $router->post('/brand/:id/location/:loc_id/upload', 'LocationController@upload')
 $router->post('/image/:id/delete', 'LocationController@delete');
 $router->get('/image/:id', 'GalleryController@show');
 
+// Storage — serve uploaded images
+$router->get('/storage/images/:slug/:file', 'StorageController@serve');
+
 // Download
 $router->get('/download/:id', 'DownloadController@single');
 $router->post('/download/bulk', 'DownloadController@bulk');
