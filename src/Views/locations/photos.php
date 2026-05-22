@@ -226,14 +226,25 @@ $slotNames = [
         const signRes  = await fetch(uploadSignUrl, { method: 'POST', body: signFd });
         const signData = await signRes.json();
         if (!signData.success) throw new Error(signData.error || 'Erro ao iniciar upload.');
+        if (!signData.signed_url || !signData.signed_url.startsWith('http')) {
+            throw new Error('URL de upload inválido: ' + JSON.stringify(signData));
+        }
 
         // Step 2 — upload directly to Supabase (bypasses Vercel body limit)
-        const putRes = await fetch(signData.signed_url, {
-            method:  'PUT',
-            headers: { 'Content-Type': file.type },
-            body:    file,
-        });
-        if (!putRes.ok) throw new Error('Erro ao transferir ficheiro para o storage.');
+        let putRes;
+        try {
+            putRes = await fetch(signData.signed_url, {
+                method:  'PUT',
+                headers: { 'Content-Type': file.type },
+                body:    file,
+            });
+        } catch (corsErr) {
+            throw new Error('CORS bloqueado ao enviar para o Supabase Storage. Verifica as definições de CORS no Supabase Dashboard → Storage → Policies. Detalhe: ' + corsErr.message);
+        }
+        if (!putRes.ok) {
+            const errText = await putRes.text().catch(() => '');
+            throw new Error('Supabase Storage recusou o ficheiro (' + putRes.status + '): ' + errText);
+        }
 
         // Step 3 — get dimensions client-side
         const dims = await getImageDimensions(file);
