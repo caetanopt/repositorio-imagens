@@ -17,9 +17,9 @@ class BrandController extends Controller
         $brandModel = new Brand();
         $brands     = $brandModel->findAll([], 'name ASC');
 
-        $imageModel = new Image();
+        $locationModel = new Location();
         foreach ($brands as &$brand) {
-            $brand['image_count'] = $imageModel->countByBrand($brand['id']);
+            $brand['location_count'] = count($locationModel->findByBrand($brand['id']));
         }
         unset($brand);
 

@@ -25,7 +25,7 @@
             </svg>
         </div>
         <div class="brand-card-name"><?= e($brand['name']) ?></div>
-        <div class="brand-card-meta"><?= e($brand['image_count']) ?> <?= $brand['image_count'] === 1 ? 'foto' : 'fotos' ?></div>
+        <div class="brand-card-meta"><?= e($brand['location_count']) ?> <?= $brand['location_count'] === 1 ? 'localização' : 'localizações' ?></div>
     </a>
     <?php endforeach; ?>
 </div>
