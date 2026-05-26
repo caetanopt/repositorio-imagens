@@ -17,6 +17,7 @@
     </noscript>
 </head>
 <body class="<?= isset($bodyClass) ? e($bodyClass) : '' ?>">
+<!-- BUILD:<?= date('YmdHis') ?>|VER:<?= ASSET_VER ?> -->
 
 <?php if ($auth->check()): ?>
 <nav class="navbar">
