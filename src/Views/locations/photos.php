@@ -13,7 +13,7 @@ $filledCount   = count($images);
 ?>
 
 <div class="brand-header">
-    <a href="<?= url('/brand/' . $brand['id']) ?>" class="brand-header-back">
+    <a href="<?= url('/marcas/' . $brand['slug']) ?>" class="brand-header-back">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
             <path d="m15 18-6-6 6-6"/>
         </svg>
@@ -158,7 +158,7 @@ $filledCount   = count($images);
 <script>
 (function () {
     /* ── Config ────────────────────────────────────────── */
-    const uploadUrl        = '<?= e(url('/brand/' . $brand['id'] . '/location/' . $location['id'] . '/upload')) ?>';
+    const uploadUrl        = '<?= e($upload_url) ?>';
     const useDirectUpload  = <?= json_encode($use_direct_upload) ?>;
     const uploadSignUrl    = '<?= e($upload_sign_url) ?>';
     const uploadConfirmUrl = '<?= e($upload_confirm_url) ?>';
@@ -310,7 +310,7 @@ $filledCount   = count($images);
 
                 this.disabled = true;
                 try {
-                    const res  = await fetch('/image/' + id + '/delete', {
+                    const res  = await fetch('/foto/' + id + '/eliminar', {
                         method : 'POST',
                         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                         body   : 'csrf_token=' + encodeURIComponent(csrfToken),

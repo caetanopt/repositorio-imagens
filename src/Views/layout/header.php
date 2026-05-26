@@ -80,7 +80,7 @@
                 </div>
                 <div class="user-menu-divider"></div>
                 <?php if ($auth->can('manage_users') || $auth->can('manage_brands')): ?>
-                <a href="<?= url('/admin/users') ?>" class="user-menu-item">
+                <a href="<?= url('/admin/utilizadores') ?>" class="user-menu-item">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
                         <circle cx="9" cy="7" r="4"/>
@@ -88,7 +88,7 @@
                     </svg>
                     Utilizadores
                 </a>
-                <a href="<?= url('/admin/brands') ?>" class="user-menu-item">
+                <a href="<?= url('/admin/marcas') ?>" class="user-menu-item">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/>
                     </svg>
@@ -112,7 +112,7 @@
 <div class="app-layout">
     <aside class="sidebar" id="sidebar">
         <nav class="sidebar-nav">
-            <a href="<?= url('/') ?>" class="sidebar-item <?= (($_SERVER['REQUEST_URI'] ?? '/') === '/' || preg_match('#^/brand(/|$)#', $_SERVER['REQUEST_URI'] ?? '')) ? 'active' : '' ?>">
+            <a href="<?= url('/') ?>" class="sidebar-item <?= (($_SERVER['REQUEST_URI'] ?? '/') === '/' || preg_match('#^/marcas(/|$)#', $_SERVER['REQUEST_URI'] ?? '')) ? 'active' : '' ?>">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
                     <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
@@ -120,7 +120,7 @@
                 <span>Repositório</span>
             </a>
             <?php if ($auth->can('convert')): ?>
-            <a href="<?= url('/converter') ?>" class="sidebar-item <?= strpos($_SERVER['REQUEST_URI'] ?? '', '/converter') === 0 ? 'active' : '' ?>">
+            <a href="<?= url('/conversor') ?>" class="sidebar-item <?= strpos($_SERVER['REQUEST_URI'] ?? '', '/conversor') === 0 ? 'active' : '' ?>">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M12 2a10 10 0 0 1 7.38 16.74M12 22a10 10 0 0 1-7.38-16.74"/>
                     <polyline points="21 2 16 7 11 2"/><polyline points="3 22 8 17 13 22"/>
@@ -130,7 +130,7 @@
             <?php endif; ?>
             <?php if ($auth->can('manage_users')): ?>
             <div class="sidebar-section-title">Administração</div>
-            <a href="<?= url('/admin/users') ?>" class="sidebar-item <?= strpos($_SERVER['REQUEST_URI'] ?? '', '/admin/users') === 0 ? 'active' : '' ?>">
+            <a href="<?= url('/admin/utilizadores') ?>" class="sidebar-item <?= strpos($_SERVER['REQUEST_URI'] ?? '', '/admin/utilizadores') === 0 ? 'active' : '' ?>">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
                     <circle cx="9" cy="7" r="4"/>
@@ -138,7 +138,7 @@
                 </svg>
                 <span>Utilizadores</span>
             </a>
-            <a href="<?= url('/admin/brands') ?>" class="sidebar-item <?= strpos($_SERVER['REQUEST_URI'] ?? '', '/admin/brands') === 0 ? 'active' : '' ?>">
+            <a href="<?= url('/admin/marcas') ?>" class="sidebar-item <?= strpos($_SERVER['REQUEST_URI'] ?? '', '/admin/marcas') === 0 ? 'active' : '' ?>">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/>
                 </svg>

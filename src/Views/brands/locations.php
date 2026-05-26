@@ -18,7 +18,7 @@
             </div>
         </div>
         <?php if ($auth->can('manage_brands')): ?>
-        <a href="<?= url('/admin/brands/' . $brand['id'] . '/locations') ?>" class="btn btn-secondary btn-sm">
+        <a href="<?= url('/admin/marcas/' . $brand['id'] . '/localizacoes') ?>" class="btn btn-secondary btn-sm">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                 <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
             </svg>
@@ -39,7 +39,7 @@
     <h2 class="empty-state-title">Nenhuma localização configurada</h2>
     <p class="empty-state-text">As localizações da marca <strong><?= e($brand['name']) ?></strong> ainda não foram criadas.</p>
     <?php if ($auth->can('manage_brands')): ?>
-    <a href="<?= url('/admin/brands/' . $brand['id'] . '/locations') ?>" class="btn btn-primary">
+    <a href="<?= url('/admin/marcas/' . $brand['id'] . '/localizacoes') ?>" class="btn btn-primary">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
             <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
         </svg>
@@ -50,7 +50,7 @@
 <?php else: ?>
 <div class="locations-grid">
             <?php foreach ($locations as $loc): ?>
-            <a href="<?= url('/brand/' . $brand['id'] . '/location/' . $loc['id']) ?>" class="location-card">
+            <a href="<?= url('/marcas/' . $brand['slug'] . '/' . $loc['slug']) ?>" class="location-card">
                 <div class="location-card-thumbnails">
                     <?php
                     $previews = $loc['preview_images'] ?? [];

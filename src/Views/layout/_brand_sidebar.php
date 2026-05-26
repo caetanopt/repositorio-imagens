@@ -10,7 +10,7 @@ $currentLocationId = $currentLocationId ?? null;
 ?>
 <aside class="brand-sidebar">
     <div class="brand-sidebar-header">
-        <a href="<?= url('/brand/' . $brand['id']) ?>" class="brand-sidebar-brand-link">
+        <a href="<?= url('/marcas/' . $brand['slug']) ?>" class="brand-sidebar-brand-link">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                 <path d="m15 18-6-6 6-6"/>
             </svg>
@@ -24,7 +24,7 @@ $currentLocationId = $currentLocationId ?? null;
     <nav>
         <?php foreach ($brandLocations as $loc): ?>
         <?php $isActive = $currentLocationId !== null && (int) $loc['id'] === (int) $currentLocationId; ?>
-        <a href="<?= url('/brand/' . $brand['id'] . '/location/' . $loc['id']) ?>"
+        <a href="<?= url('/marcas/' . $brand['slug'] . '/' . $loc['slug']) ?>"
            class="brand-sidebar-item <?= $isActive ? 'brand-sidebar-item--active' : '' ?>">
             <span class="brand-sidebar-item-name"><?= e($loc['name']) ?></span>
             <div class="brand-sidebar-item-count">

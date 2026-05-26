@@ -11,13 +11,13 @@
     <h2 class="empty-state-title">Nenhuma marca disponível</h2>
     <p class="empty-state-text">As marcas são criadas pela administração.</p>
     <?php if ($auth->can('manage_brands')): ?>
-    <a href="<?= url('/admin/brands') ?>" class="btn btn-primary">Gerir marcas</a>
+    <a href="<?= url('/admin/marcas') ?>" class="btn btn-primary">Gerir marcas</a>
     <?php endif; ?>
 </div>
 <?php else: ?>
 <div class="brands-grid">
     <?php foreach ($brands as $brand): ?>
-    <a href="<?= url('/brand/' . $brand['id']) ?>" class="brand-card">
+    <a href="<?= url('/marcas/' . $brand['slug']) ?>" class="brand-card">
         <div class="brand-card-icon">
             <?php if (!empty($brand['logo_url'])): ?>
             <img src="<?= e($brand['logo_url']) ?>" alt="<?= e($brand['name']) ?>" class="brand-card-logo">

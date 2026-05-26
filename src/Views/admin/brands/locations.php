@@ -1,7 +1,7 @@
 <?php require_once __DIR__ . '/../../layout/header.php'; ?>
 
 <div class="brand-header">
-    <a href="<?= url('/brand/' . $brand['id']) ?>" class="brand-header-back">
+    <a href="<?= url('/marcas/' . $brand['slug']) ?>" class="brand-header-back">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
             <path d="m15 18-6-6 6-6"/>
         </svg>
@@ -15,7 +15,7 @@
                 <p class="brand-header-meta"><?= e(count($locations)) ?> <?= count($locations) === 1 ? 'localização' : 'localizações' ?></p>
             </div>
         </div>
-        <a href="<?= url('/admin/brands/' . $brand['id'] . '/locations/create') ?>" class="btn btn-primary">
+        <a href="<?= url('/admin/marcas/' . $brand['id'] . '/localizacoes/criar') ?>" class="btn btn-primary">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                 <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
             </svg>
@@ -56,7 +56,7 @@
                         </span>
                     </td>
                     <td class="table-actions">
-                        <a href="<?= url('/brand/' . $brand['id'] . '/location/' . $loc['id']) ?>" class="btn btn-xs btn-secondary" target="_blank">
+                        <a href="<?= url('/marcas/' . $brand['slug'] . '/' . $loc['slug']) ?>" class="btn btn-xs btn-secondary" target="_blank">
                             Ver fotos
                         </a>
                         <button class="btn btn-xs btn-danger"
@@ -94,7 +94,7 @@ document.querySelectorAll('[data-delete-location]').forEach(btn => {
 
         this.disabled = true;
         try {
-            const res  = await fetch(`/admin/brands/${brandId}/locations/${id}/delete`, {
+            const res  = await fetch(`/admin/marcas/${brandId}/localizacoes/${id}/eliminar`, {
                 method : 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body   : `csrf_token=${encodeURIComponent(window.APP?.csrfToken ?? '')}`,

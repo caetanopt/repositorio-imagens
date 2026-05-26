@@ -9,7 +9,7 @@ require_once __DIR__ . '/../../layout/header.php';
         <span class="total-count"><?= e(count($brands)) ?> marcas</span>
     </div>
     <div class="page-header-right">
-        <a href="<?= url('/admin/brands/create') ?>" class="btn btn-primary">
+        <a href="<?= url('/admin/marcas/criar') ?>" class="btn btn-primary">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                 <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
             </svg>
@@ -50,10 +50,10 @@ require_once __DIR__ . '/../../layout/header.php';
                     <td><code class="code-path">/storage/images/<?= e($brand['slug']) ?>/</code></td>
                     <td class="table-date"><?= e(date('d/m/Y', strtotime($brand['created_at']))) ?></td>
                     <td class="table-actions">
-                        <a href="<?= url('/admin/brands/' . $brand['id'] . '/locations') ?>" class="btn btn-xs btn-secondary">
+                        <a href="<?= url('/admin/marcas/' . $brand['id'] . '/localizacoes') ?>" class="btn btn-xs btn-secondary">
                             Localizações
                         </a>
-                        <a href="<?= url('/admin/brands/' . $brand['id'] . '/edit') ?>" class="btn btn-xs btn-secondary">
+                        <a href="<?= url('/admin/marcas/' . $brand['id'] . '/editar') ?>" class="btn btn-xs btn-secondary">
                             Editar
                         </a>
                         <button class="btn btn-xs btn-danger"
@@ -85,7 +85,7 @@ document.querySelectorAll('[data-delete-brand]').forEach(btn => {
 
         this.disabled = true;
         try {
-            const res  = await fetch(`/admin/brands/${id}/delete`, {
+            const res  = await fetch(`/admin/marcas/${id}/eliminar`, {
                 method : 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body   : `csrf_token=${encodeURIComponent(window.APP?.csrfToken ?? '')}`,

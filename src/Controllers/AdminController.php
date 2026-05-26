@@ -235,13 +235,13 @@ class AdminController extends Controller
 
         if (empty($name)) {
             $this->setFlash('error', 'O nome da marca é obrigatório.');
-            $this->redirect('/admin/brands/create');
+            $this->redirect('/admin/marcas/criar');
         }
 
         $brandModel = new Brand();
         if ($brandModel->slugExists($slug)) {
             $this->setFlash('error', 'Já existe uma marca com este nome/slug.');
-            $this->redirect('/admin/brands/create');
+            $this->redirect('/admin/marcas/criar');
         }
 
         $id = $brandModel->create(['name' => $name, 'slug' => $slug]);
@@ -258,7 +258,7 @@ class AdminController extends Controller
         $auditLog->log($me['id'], 'brand_create', 'brand', $id, ['name' => $name, 'slug' => $slug]);
 
         $this->setFlash('success', 'Marca criada com sucesso.');
-        $this->redirect('/admin/brands');
+        $this->redirect('/admin/marcas');
     }
 
     public function brandEdit(Request $request, array $params = []): void
@@ -271,12 +271,12 @@ class AdminController extends Controller
 
         if (!$brand) {
             $this->setFlash('error', 'Marca não encontrada.');
-            $this->redirect('/admin/brands');
+            $this->redirect('/admin/marcas');
         }
 
         $this->render('admin/brands/form', [
             'brand'       => $brand,
-            'action'      => '/admin/brands/' . $id . '/edit',
+            'action'      => '/admin/marcas/' . $id . '/editar',
             'flash_error' => $this->getFlash('error'),
             'csrf_token'  => $this->csrfToken(),
         ]);
@@ -293,7 +293,7 @@ class AdminController extends Controller
 
         if (!$brand) {
             $this->setFlash('error', 'Marca não encontrada.');
-            $this->redirect('/admin/brands');
+            $this->redirect('/admin/marcas');
         }
 
         $name = trim($request->post('name', ''));
@@ -301,12 +301,12 @@ class AdminController extends Controller
 
         if (empty($name)) {
             $this->setFlash('error', 'O nome da marca é obrigatório.');
-            $this->redirect('/admin/brands/' . $id . '/edit');
+            $this->redirect('/admin/marcas/' . $id . '/editar');
         }
 
         if ($brandModel->slugExists($slug, $id)) {
             $this->setFlash('error', 'Já existe outra marca com este nome/slug.');
-            $this->redirect('/admin/brands/' . $id . '/edit');
+            $this->redirect('/admin/marcas/' . $id . '/editar');
         }
 
         $brandModel->update($id, ['name' => $name, 'slug' => $slug]);
@@ -316,7 +316,7 @@ class AdminController extends Controller
         $auditLog->log($me['id'], 'brand_update', 'brand', $id, ['name' => $name, 'slug' => $slug]);
 
         $this->setFlash('success', 'Marca actualizada.');
-        $this->redirect('/admin/brands');
+        $this->redirect('/admin/marcas');
     }
 
     public function brandDelete(Request $request, array $params = []): void
@@ -421,7 +421,7 @@ class AdminController extends Controller
 
         if (!$brand) {
             $this->setFlash('error', 'Marca não encontrada.');
-            $this->redirect('/admin/brands');
+            $this->redirect('/admin/marcas');
         }
 
         $locationModel = new Location();
@@ -452,13 +452,13 @@ class AdminController extends Controller
         $brand      = $brandModel->find($brandId);
 
         if (!$brand) {
-            $this->redirect('/admin/brands');
+            $this->redirect('/admin/marcas');
         }
 
         $this->render('admin/brands/location_form', [
             'brand'       => $brand,
             'location'    => null,
-            'action'      => '/admin/brands/' . $brandId . '/locations/create',
+            'action'      => '/admin/marcas/' . $brandId . '/localizacoes/criar',
             'flash_error' => $this->getFlash('error'),
             'csrf_token'  => $this->csrfToken(),
         ]);
@@ -474,7 +474,7 @@ class AdminController extends Controller
         $brand      = $brandModel->find($brandId);
 
         if (!$brand) {
-            $this->redirect('/admin/brands');
+            $this->redirect('/admin/marcas');
         }
 
         $name = trim($request->post('name', ''));
@@ -482,13 +482,13 @@ class AdminController extends Controller
 
         if (empty($name)) {
             $this->setFlash('error', 'O nome da localização é obrigatório.');
-            $this->redirect('/admin/brands/' . $brandId . '/locations/create');
+            $this->redirect('/admin/marcas/' . $brandId . '/localizacoes/criar');
         }
 
         $locationModel = new Location();
         if ($locationModel->slugExistsForBrand($slug, $brandId)) {
             $this->setFlash('error', 'Já existe uma localização com este nome para esta marca.');
-            $this->redirect('/admin/brands/' . $brandId . '/locations/create');
+            $this->redirect('/admin/marcas/' . $brandId . '/localizacoes/criar');
         }
 
         $locationId = $locationModel->create([
@@ -505,7 +505,7 @@ class AdminController extends Controller
         ]);
 
         $this->setFlash('success', 'Localização criada com sucesso.');
-        $this->redirect('/admin/brands/' . $brandId . '/locations');
+        $this->redirect('/admin/marcas/' . $brandId . '/localizacoes');
     }
 
     public function locationDelete(Request $request, array $params = []): void

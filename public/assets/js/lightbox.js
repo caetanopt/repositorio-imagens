@@ -79,7 +79,7 @@
         nextBtn.style.display = imageIds.length > 1 ? '' : 'none';
 
         try {
-            const res  = await fetch(`/image/${id}`, {
+            const res  = await fetch(`/foto/${id}`, {
                 headers: { 'X-Requested-With': 'XMLHttpRequest' },
             });
 
@@ -148,7 +148,7 @@
         if (!confirmed) return;
 
         try {
-            const res = await fetch(`/image/${id}/delete`, {
+            const res = await fetch(`/foto/${id}/eliminar`, {
                 method : 'POST',
                 headers: {
                     'Content-Type'    : 'application/x-www-form-urlencoded',

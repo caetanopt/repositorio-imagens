@@ -1,7 +1,7 @@
 <?php require_once __DIR__ . '/../../layout/header.php'; ?>
 
 <div class="brand-header">
-    <a href="<?= url('/admin/brands/' . $brand['id'] . '/locations') ?>" class="brand-header-back">
+    <a href="<?= url('/admin/marcas/' . $brand['id'] . '/localizacoes') ?>" class="brand-header-back">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
             <path d="m15 18-6-6 6-6"/>
         </svg>
@@ -37,7 +37,7 @@
         </div>
 
         <div class="form-actions">
-            <a href="<?= url('/admin/brands/' . $brand['id'] . '/locations') ?>" class="btn btn-secondary">Cancelar</a>
+            <a href="<?= url('/admin/marcas/' . $brand['id'] . '/localizacoes') ?>" class="btn btn-secondary">Cancelar</a>
             <button type="submit" class="btn btn-primary">Criar localização</button>
         </div>
     </form>

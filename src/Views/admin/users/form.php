@@ -6,7 +6,7 @@ require_once __DIR__ . '/../../layout/header.php';
 
 <div class="page-header">
     <div class="page-header-left">
-        <a href="<?= url('/admin/users') ?>" class="back-link">
+        <a href="<?= url('/admin/utilizadores') ?>" class="back-link">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                 <path d="m15 18-6-6 6-6"/>
             </svg>
@@ -83,7 +83,7 @@ require_once __DIR__ . '/../../layout/header.php';
         </div>
 
         <div class="form-actions">
-            <a href="<?= url('/admin/users') ?>" class="btn btn-secondary">Cancelar</a>
+            <a href="<?= url('/admin/utilizadores') ?>" class="btn btn-secondary">Cancelar</a>
             <button type="submit" class="btn btn-primary">
                 <?= $isEdit ? 'Guardar alterações' : 'Criar utilizador' ?>
             </button>
