@@ -111,7 +111,7 @@ code { font-family: 'SFMono-Regular', Consolas, monospace; font-size: .875em; ba
     transition: var(--transition);
 }
 
-.navbar-search { width: 100%; max-width: 900px; justify-self: center; }
+.navbar-search { width: 100%; max-width: 1200px; justify-self: center; }
 
 .search-input-wrap { position: relative; }
 
