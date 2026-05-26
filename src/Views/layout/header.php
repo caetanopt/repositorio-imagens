@@ -5,10 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="<?= e($_SESSION['csrf_token'] ?? '') ?>">
     <title><?= e($pageTitle ?? 'Repositório de Imagens') ?> — <?= e(env('APP_NAME', 'Repositório de Imagens')) ?></title>
-    <link rel="stylesheet" href="<?= e(url('assets/css/app.css')) ?>?v=<?= filemtime(__DIR__ . '/../../../public/assets/css/app.css') ?>">
+    <link rel="stylesheet" href="<?= e(url('assets/css/app.css')) ?>?v=<?= ASSET_VER ?>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Nunito:wght@700;800&display=swap">
+    <!-- Load Google Fonts async — prevents render-blocking -->
+    <link rel="preload" as="style"
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Nunito:wght@700;800&display=swap"
+          onload="this.onload=null;this.rel='stylesheet'">
+    <noscript>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Nunito:wght@700;800&display=swap">
+    </noscript>
 </head>
 <body class="<?= isset($bodyClass) ? e($bodyClass) : '' ?>">
 

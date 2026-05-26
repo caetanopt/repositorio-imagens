@@ -53,11 +53,12 @@ class LocationController extends Controller
         }
         $images = $slotMap;
 
-        // Load all brand locations for the sidebar
+        // Load all brand locations for the sidebar (single query with GROUP BY)
         $locationModel  = new Location();
         $brandLocations = $locationModel->findByBrand($brand['id']);
+        $countMap       = $imageModel->countsByBrand($brand['id']);
         foreach ($brandLocations as &$loc) {
-            $loc['image_count'] = $imageModel->countByLocation($brand['id'], $loc['id']);
+            $loc['image_count'] = $countMap[(int) $loc['id']] ?? 0;
         }
         unset($loc);
 
