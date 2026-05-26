@@ -25,7 +25,7 @@
             <span></span><span></span><span></span>
         </button>
         <a href="<?= url('/') ?>" class="brand-logo">
-            <img src="<?= url('assets/img/caetano-logo.svg') ?>" alt="Caetano" class="brand-logo-img">
+            <img src="<?= url('assets/img/caetano-logo-white.svg') ?>" alt="Caetano" class="brand-logo-img" style="height:26px;width:auto;display:block;">
         </a>
     </div>
 
