@@ -271,3 +271,4 @@ storage/images/
 - Cookie "remember me" com flag `httpOnly` e `secure`
 - Cabeçalhos de segurança via `.htaccess`
 - Soft-delete para imagens (apenas admin pode apagar definitivamente)
+
