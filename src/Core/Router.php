@@ -95,13 +95,11 @@ class Router
         try {
             $controller->$method($request, $params);
         } catch (\Throwable $e) {
-            error_log('Controller exception: ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine());
+            error_log('Controller exception: ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine() . "\n" . $e->getTraceAsString());
             http_response_code(500);
-            $debug = (env('APP_DEBUG', false) === true || env('APP_DEBUG', '') === 'true');
-            if ($debug) {
-                echo '<pre style="background:#1a1a2e;color:#e94560;padding:2rem;font-size:13px">';
-                echo htmlspecialchars((string) $e);
-                echo '</pre>';
+            $viewFile = __DIR__ . '/../Views/errors/500.php';
+            if (file_exists($viewFile)) {
+                require $viewFile;
             } else {
                 die('Internal Server Error');
             }

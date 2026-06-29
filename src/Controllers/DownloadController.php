@@ -170,8 +170,9 @@ class DownloadController extends Controller
             ob_end_clean();
         }
 
+        $safeFilename = preg_replace('/[^\w.\- ]/', '_', basename($filename));
         header('Content-Type: ' . $mime);
-        header('Content-Disposition: attachment; filename="' . addslashes($filename) . '"');
+        header('Content-Disposition: attachment; filename="' . $safeFilename . '"');
         header('Content-Length: ' . $size);
         header('Cache-Control: no-cache, must-revalidate');
         header('Pragma: no-cache');

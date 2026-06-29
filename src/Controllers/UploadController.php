@@ -83,6 +83,32 @@ class UploadController extends Controller
             ], 422);
         }
 
+        // Validate magic bytes to prevent disguised executables
+        $magicSignatures = [
+            'image/jpeg' => ["\xFF\xD8\xFF"],
+            'image/jpg'  => ["\xFF\xD8\xFF"],
+            'image/png'  => ["\x89\x50\x4E\x47\x0D\x0A\x1A\x0A"],
+            'image/gif'  => ["\x47\x49\x46\x38\x37\x61", "\x47\x49\x46\x38\x39\x61"],
+            'image/webp' => ["\x52\x49\x46\x46"],
+            'image/bmp'  => ["\x42\x4D"],
+        ];
+        $handle    = fopen($uploadedFile['tmp_name'], 'rb');
+        $fileHeader = fread($handle, 12);
+        fclose($handle);
+        $validMagic = false;
+        foreach ($magicSignatures[$mime] ?? [] as $sig) {
+            if (str_starts_with($fileHeader, $sig)) {
+                $validMagic = true;
+                break;
+            }
+        }
+        if (!$validMagic) {
+            $this->json([
+                'success' => false,
+                'error'   => 'O ficheiro não é uma imagem válida.',
+            ], 422);
+        }
+
         // Build storage directory
         $storageBase = env('STORAGE_PATH', dirname(__DIR__, 2) . '/storage/images');
         $brandSlug   = $brand['slug'];
