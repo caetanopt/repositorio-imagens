@@ -10,6 +10,7 @@ use App\Models\Brand;
 use App\Models\Image;
 use App\Models\Location;
 use App\Services\ImageService;
+use App\Services\StorageResolver;
 
 class ConverterController extends Controller
 {
@@ -75,7 +76,7 @@ class ConverterController extends Controller
         }
 
         $storageBase = env('STORAGE_PATH', dirname(__DIR__, 2) . '/storage/images');
-        $absPath     = $this->resolvePath($image['filepath'], $storageBase);
+        $absPath     = StorageResolver::resolvePath($image['filepath'], $storageBase);
 
         if (!file_exists($absPath)) {
             $this->json(['success' => false, 'error' => 'Ficheiro fonte não encontrado.'], 404);
@@ -139,7 +140,7 @@ class ConverterController extends Controller
         }
 
         $storageBase = env('STORAGE_PATH', dirname(__DIR__, 2) . '/storage/images');
-        $absPath     = $this->resolvePath($image['filepath'], $storageBase);
+        $absPath     = StorageResolver::resolvePath($image['filepath'], $storageBase);
 
         if (!file_exists($absPath)) {
             $this->json(['success' => false, 'error' => 'Ficheiro não encontrado.'], 404);
@@ -163,14 +164,5 @@ class ConverterController extends Controller
             'estimated_human'=> formatBytes($estimatedSize),
             'savings_pct'    => $savings,
         ]);
-    }
-
-    private function resolvePath(string $filePath, string $storageBase): string
-    {
-        if (file_exists($filePath)) {
-            return $filePath;
-        }
-        $candidate = rtrim($storageBase, '/') . '/' . ltrim(basename($filePath), '/');
-        return file_exists($candidate) ? $candidate : $filePath;
     }
 }

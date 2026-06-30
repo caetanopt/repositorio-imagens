@@ -9,15 +9,15 @@ use App\Models\Brand;
 use App\Models\Image;
 use App\Models\Location;
 use App\Services\ImageService;
+use App\Services\StorageResolver;
 use App\Services\SupabaseStorage;
+use App\Traits\ValidatesUpload;
 
 class LocationController extends Controller
 {
-    private const MAX_PHOTOS   = 4;
-    private const ALLOWED_MIMES = [
-        'image/jpeg', 'image/jpg', 'image/png',
-        'image/gif',  'image/webp', 'image/bmp',
-    ];
+    use ValidatesUpload;
+
+    private const MAX_PHOTOS = 4;
 
     public function photos(Request $request, array $params = []): void
     {
@@ -35,9 +35,9 @@ class LocationController extends Controller
         // Build slot map: slot number (1-4) → image row
         $slotMap = [];
         foreach ($rawImages as $img) {
-            $img['thumb_url']     = $this->resolveUrl($img['thumb_filepath']    ?? '', $base);
-            $img['optimized_url'] = $this->resolveUrl($img['filepath']          ?? '', $base);
-            $img['original_url']  = $this->resolveUrl($img['original_filepath'] ?? '', $base);
+            $img['thumb_url']     = StorageResolver::resolveUrl($img['thumb_filepath']    ?? '', $base);
+            $img['optimized_url'] = StorageResolver::resolveUrl($img['filepath']          ?? '', $base);
+            $img['original_url']  = StorageResolver::resolveUrl($img['original_filepath'] ?? '', $base);
             $img['download_url']  = '/download/' . $img['id'];
             $img['filesize_human']= formatBytes((int) ($img['filesize'] ?? 0));
 
@@ -113,15 +113,8 @@ class LocationController extends Controller
             $this->json(['success' => false, 'error' => $this->uploadError($file['error'])], 422);
         }
 
-        $maxBytes = ((int) env('UPLOAD_MAX_SIZE_MB', 4)) * 1024 * 1024;
-        if ($file['size'] > $maxBytes) {
-            $this->json(['success' => false, 'error' => 'Ficheiro demasiado grande. Máximo: ' . env('UPLOAD_MAX_SIZE_MB', 4) . ' MB.'], 422);
-        }
-
-        $mime = mime_content_type($file['tmp_name']);
-        if (!in_array($mime, self::ALLOWED_MIMES, true)) {
-            $this->json(['success' => false, 'error' => 'Tipo de ficheiro não suportado. Permitido: JPG, PNG, WEBP, GIF.'], 422);
-        }
+        $this->validateUploadedFileSize($file['size'], (int) env('UPLOAD_MAX_SIZE_MB', 4));
+        $mime = $this->validateUploadedFileType($file['tmp_name']);
 
         $storageBase = env('STORAGE_PATH', dirname(__DIR__, 2) . '/storage/images');
         $destDir     = rtrim($storageBase, '/') . '/' . $brand['slug'];
@@ -208,8 +201,8 @@ class LocationController extends Controller
         $this->json([
             'success'           => true,
             'image_id'          => $imageId,
-            'thumb_url'         => $this->resolveUrl($storedThumb, $base),
-            'optimized_url'     => $this->resolveUrl($storedOptimized, $base),
+            'thumb_url'         => StorageResolver::resolveUrl($storedThumb, $base),
+            'optimized_url'     => StorageResolver::resolveUrl($storedOptimized, $base),
             'original_filename' => $file['name'],
             'filesize_human'    => formatBytes($result['optimized_size']),
             'download_url'      => '/download/' . $imageId,
@@ -377,13 +370,6 @@ class LocationController extends Controller
         $this->json(['success' => true]);
     }
 
-    private function resolveUrl(string $path, string $base): string
-    {
-        if (str_starts_with($path, 'http')) {
-            return $path;
-        }
-        return $path !== '' ? $base . '/' . basename($path) : '';
-    }
 
     private function loadBrandLocation(string $brandSlug, string $locSlug): array
     {

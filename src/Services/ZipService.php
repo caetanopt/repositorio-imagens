@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Models\Image;
+use App\Services\StorageResolver;
 
 class ZipService
 {
@@ -60,7 +61,7 @@ class ZipService
             }
 
             // Build absolute path
-            $absPath = $this->resolvePath($filePath, $storageBase);
+            $absPath = StorageResolver::resolvePath($filePath, $storageBase, $image['brand_slug'] ?? '');
 
             if (!file_exists($absPath)) {
                 // Silently skip missing files
@@ -79,23 +80,6 @@ class ZipService
         $zip->close();
 
         return $zipPath;
-    }
-
-    private function resolvePath(string $filePath, string $storageBase): string
-    {
-        // If absolute path exists, use directly
-        if (file_exists($filePath)) {
-            return $filePath;
-        }
-
-        // Try relative to storage base
-        $candidate = rtrim($storageBase, '/') . '/' . ltrim($filePath, '/');
-        if (file_exists($candidate)) {
-            return $candidate;
-        }
-
-        // Return original (will be checked by caller)
-        return $filePath;
     }
 
     private function uniqueName(string $name, array $existing): string
