@@ -102,10 +102,10 @@ $filledCount   = count($images);
             <div class="photo-slot-meta">
                 <span class="photo-slot-label"><?= e($slotNames[$s] ?? 'Slot ' . $s) ?></span>
                 <div class="photo-slot-meta-right">
-                    <span class="photo-slot-size"><?= e($img['filesize_human']) ?></span>
                     <span class="photo-slot-date" data-date-for="<?= e($img['id']) ?>">
                         <?= !empty($img['captured_at']) ? e(date('d/m/Y', strtotime($img['captured_at']))) : 'Sem data' ?>
                     </span>
+                    <span class="photo-slot-size"><?= e($img['filesize_human']) ?></span>
                 </div>
             </div>
         </div>
@@ -248,8 +248,8 @@ $filledCount   = count($images);
                 <div class="photo-slot-meta">
                     <span class="photo-slot-label">${esc(name)}</span>
                     <div class="photo-slot-meta-right">
-                        <span class="photo-slot-size">${esc(filesizeHuman)}</span>
                         <span class="photo-slot-date" data-date-for="${esc(imageId)}">Sem data</span>
+                        <span class="photo-slot-size">${esc(filesizeHuman)}</span>
                     </div>
                 </div>
             </div>
