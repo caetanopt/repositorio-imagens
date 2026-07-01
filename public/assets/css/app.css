@@ -1688,6 +1688,7 @@ body.lightbox-open { overflow: hidden; }
     width: auto;
     height: auto;
     object-fit: contain;
+    filter: brightness(0);
 }
 
 .brand-card-monogram {
