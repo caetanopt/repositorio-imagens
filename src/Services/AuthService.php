@@ -62,10 +62,11 @@ class AuthService
         session_regenerate_id(true);
 
         $_SESSION['user'] = [
-            'id'    => $user['id'],
-            'name'  => $user['name'],
-            'email' => $user['email'],
-            'role'  => $user['role'],
+            'id'         => $user['id'],
+            'name'       => $user['name'],
+            'email'      => $user['email'],
+            'role'       => $user['role'],
+            'photo_path' => $user['photo_path'] ?? null,
         ];
 
         if ($remember) {
@@ -117,10 +118,11 @@ class AuthService
     {
         // AUTH DISABLED — return guest admin until re-enabled
         return $_SESSION['user'] ?? [
-            'id'    => 0,
-            'name'  => 'Utilizador',
-            'email' => '',
-            'role'  => 'admin',
+            'id'         => 0,
+            'name'       => 'Utilizador',
+            'email'      => '',
+            'role'       => 'admin',
+            'photo_path' => null,
         ];
     }
 

@@ -45,7 +45,11 @@
     <div class="navbar-actions">
         <div class="user-menu" id="userMenu">
             <button class="user-menu-trigger" id="userMenuTrigger">
+                <?php if (!empty($auth->user()['photo_path'])): ?>
+                <img class="user-avatar user-avatar--photo" src="<?= e($auth->user()['photo_path']) ?>" alt="">
+                <?php else: ?>
                 <div class="user-avatar"><?= e(mb_substr($auth->user()['name'] ?? 'U', 0, 1)) ?></div>
+                <?php endif; ?>
                 <span class="user-name"><?= e($auth->user()['name'] ?? '') ?></span>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                     <path d="m6 9 6 6 6-6"/>

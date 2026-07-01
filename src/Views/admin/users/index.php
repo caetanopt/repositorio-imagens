@@ -48,7 +48,11 @@ require_once __DIR__ . '/../../layout/header.php';
                 <tr class="<?= !$user['active'] ? 'row-inactive' : '' ?>">
                     <td>
                         <div class="user-cell">
+                            <?php if (!empty($user['photo_path'])): ?>
+                            <img class="user-avatar user-avatar--sm user-avatar--photo" src="<?= e($user['photo_path']) ?>" alt="">
+                            <?php else: ?>
                             <div class="user-avatar user-avatar--sm"><?= e(mb_substr($user['name'], 0, 1)) ?></div>
+                            <?php endif; ?>
                             <?= e($user['name']) ?>
                         </div>
                     </td>

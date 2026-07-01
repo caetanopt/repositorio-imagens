@@ -243,6 +243,8 @@ code { font-family: 'SFMono-Regular', Consolas, monospace; font-size: .875em; ba
 
 .user-avatar--sm { width: 28px; height: 28px; font-size: .75rem; }
 
+.user-avatar--photo { object-fit: cover; }
+
 .user-name { font-size: .875rem; font-weight: 500; }
 
 .user-menu-dropdown {

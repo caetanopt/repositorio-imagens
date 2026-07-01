@@ -86,6 +86,11 @@ class AdminController extends Controller
             'active'        => 1,
         ]);
 
+        $photoError = $this->processUserPhotoUpload($request, $id, $userModel);
+        if ($photoError) {
+            $this->setFlash('error', 'Utilizador criado, mas a foto de perfil falhou: ' . $photoError);
+        }
+
         $me = $this->auth->user();
         $auditLog = new AuditLog();
         $auditLog->log($me['id'], 'user_create', 'user', $id, ['email' => $email, 'role' => $role]);
@@ -158,7 +163,17 @@ class AdminController extends Controller
             $updateData['password_hash'] = password_hash($password, PASSWORD_BCRYPT);
         }
 
+        if ($request->post('remove_photo') === '1' && !empty($user['photo_path'])) {
+            $this->deleteUserPhoto($user['photo_path']);
+            $updateData['photo_path'] = null;
+        }
+
         $userModel->update($id, $updateData);
+
+        $photoError = $this->processUserPhotoUpload($request, $id, $userModel);
+        if ($photoError) {
+            $this->setFlash('error', 'Utilizador actualizado, mas a foto de perfil falhou: ' . $photoError);
+        }
 
         $me = $this->auth->user();
         $auditLog = new AuditLog();
@@ -166,6 +181,101 @@ class AdminController extends Controller
 
         $this->setFlash('success', 'Utilizador actualizado.');
         $this->redirect('/admin/utilizadores');
+    }
+
+    /**
+     * Validates and uploads an optional "photo" file to Supabase Storage,
+     * updating the user's photo_path on success. Returns an error message
+     * on failure, or null if there was nothing to upload / it succeeded.
+     */
+    private function processUserPhotoUpload(Request $request, int $userId, User $userModel): ?string
+    {
+        $file = $request->file('photo');
+        if (!$file || empty($file['tmp_name']) || $file['error'] === UPLOAD_ERR_NO_FILE) {
+            return null;
+        }
+
+        if ($file['error'] !== UPLOAD_ERR_OK) {
+            return 'erro no envio do ficheiro.';
+        }
+
+        if ($file['size'] > 4 * 1024 * 1024) {
+            return 'ficheiro demasiado grande (máximo 4 MB).';
+        }
+
+        $allowedMimes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'image/bmp'];
+        $magicBytes   = [
+            'image/jpeg' => ["\xFF\xD8\xFF"],
+            'image/jpg'  => ["\xFF\xD8\xFF"],
+            'image/png'  => ["\x89\x50\x4E\x47\x0D\x0A\x1A\x0A"],
+            'image/gif'  => ["\x47\x49\x46\x38\x37\x61", "\x47\x49\x46\x38\x39\x61"],
+            'image/webp' => ["\x52\x49\x46\x46"],
+            'image/bmp'  => ["\x42\x4D"],
+        ];
+
+        $mime = mime_content_type($file['tmp_name']);
+        if (!in_array($mime, $allowedMimes, true)) {
+            return 'tipo de ficheiro não suportado (JPG, PNG, GIF ou WEBP).';
+        }
+
+        $handle     = fopen($file['tmp_name'], 'rb');
+        $fileHeader = fread($handle, 12);
+        fclose($handle);
+
+        $validMagic = false;
+        foreach ($magicBytes[$mime] ?? [] as $sig) {
+            if (str_starts_with($fileHeader, $sig)) {
+                $validMagic = true;
+                break;
+            }
+        }
+        if (!$validMagic) {
+            return 'o ficheiro não é uma imagem válida.';
+        }
+
+        $storage = new SupabaseStorage();
+        if (!$storage->isConfigured()) {
+            return 'o armazenamento de imagens não está configurado.';
+        }
+
+        $ext = match ($mime) {
+            'image/png'  => 'png',
+            'image/webp' => 'webp',
+            'image/gif'  => 'gif',
+            'image/bmp'  => 'bmp',
+            default      => 'jpg',
+        };
+
+        try {
+            $url = $storage->upload($file['tmp_name'], 'users/' . $userId . '-' . time() . '.' . $ext, $mime);
+        } catch (\Throwable $e) {
+            error_log('User photo upload failed: ' . $e->getMessage());
+            return 'falha ao enviar para o armazenamento.';
+        }
+
+        $existing = $userModel->find($userId);
+        if (!empty($existing['photo_path'])) {
+            $this->deleteUserPhoto($existing['photo_path']);
+        }
+
+        $userModel->update($userId, ['photo_path' => $url]);
+        return null;
+    }
+
+    private function deleteUserPhoto(string $photoPath): void
+    {
+        if (!str_starts_with($photoPath, 'http')) {
+            return;
+        }
+        $storage = new SupabaseStorage();
+        if (!$storage->isConfigured()) {
+            return;
+        }
+        try {
+            $storage->delete([$storage->pathFromUrl($photoPath)]);
+        } catch (\Throwable $e) {
+            error_log('User photo delete failed: ' . $e->getMessage());
+        }
     }
 
     public function userToggle(Request $request, array $params = []): void

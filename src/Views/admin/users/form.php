@@ -19,10 +19,27 @@ require_once __DIR__ . '/../../layout/header.php';
 <?php endif; ?>
 
 <div class="card card--form">
-    <form action="<?= e($action) ?>" method="post" novalidate>
+    <form action="<?= e($action) ?>" method="post" enctype="multipart/form-data" novalidate>
         <input type="hidden" name="csrf_token" value="<?= e($csrf_token) ?>">
 
         <div class="form-grid">
+            <div class="form-group">
+                <label class="form-label" for="photo">Foto de perfil</label>
+                <?php if ($isEdit && !empty($user['photo_path'])): ?>
+                <div style="display:flex; align-items:center; gap:.75rem; margin-bottom:.5rem;">
+                    <img src="<?= e($user['photo_path']) ?>" alt=""
+                         style="width:48px;height:48px;border-radius:50%;object-fit:cover;">
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="remove_photo" value="1" class="checkbox">
+                        <span class="checkbox-custom"></span>
+                        Remover foto actual
+                    </label>
+                </div>
+                <?php endif; ?>
+                <input type="file" id="photo" name="photo" class="form-input" accept="image/jpeg,image/png,image/gif,image/webp">
+                <p class="form-hint-text">JPG, PNG, GIF ou WEBP. Máximo 4 MB.</p>
+            </div>
+
             <div class="form-group">
                 <label class="form-label" for="name">Nome <span class="required">*</span></label>
                 <input type="text" id="name" name="name" class="form-input"
