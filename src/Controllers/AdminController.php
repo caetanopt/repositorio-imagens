@@ -582,8 +582,12 @@ class AdminController extends Controller
             ? array_values(array_filter($locations, fn($l) => $l['missing'] > 0))
             : $locations;
 
+        $brandNames = array_values(array_unique(array_column($locations, 'brand_name')));
+        sort($brandNames, SORT_NATURAL | SORT_FLAG_CASE);
+
         $this->render('admin/locations/audit', [
             'locations'    => $filtered,
+            'brands'       => $brandNames,
             'total_count'  => count($locations),
             'missing_count'=> count(array_filter($locations, fn($l) => $l['missing'] > 0)),
             'only_missing' => $onlyMissing,

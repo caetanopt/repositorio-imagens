@@ -23,9 +23,23 @@ require_once __DIR__ . '/../../layout/header.php';
     </div>
 </div>
 
+<div class="card" style="margin-bottom: 1rem;">
+    <div class="toolbar" style="padding: 1rem;">
+        <select id="brandFilter" class="form-select form-select--sm" style="max-width: 220px;">
+            <option value="">Todas as marcas</option>
+            <?php foreach ($brands as $brandName): ?>
+            <option value="<?= e($brandName) ?>"><?= e($brandName) ?></option>
+            <?php endforeach; ?>
+        </select>
+        <input type="search" id="locationSearch" class="form-input" style="max-width: 260px;"
+               placeholder="Pesquisar localização...">
+        <span id="visibleCount" class="total-count"></span>
+    </div>
+</div>
+
 <div class="card">
     <div class="table-wrap">
-        <table class="admin-table">
+        <table class="admin-table" id="auditTable">
             <thead>
                 <tr>
                     <th>Marca</th>
@@ -44,7 +58,8 @@ require_once __DIR__ . '/../../layout/header.php';
                 </tr>
                 <?php else: ?>
                 <?php foreach ($locations as $loc): ?>
-                <tr>
+                <tr data-brand="<?= e($loc['brand_name']) ?>"
+                    data-search="<?= e(mb_strtolower($loc['brand_name'] . ' ' . $loc['name'])) ?>">
                     <td><span class="badge badge-brand"><?= e($loc['brand_name']) ?></span></td>
                     <td><?= e($loc['name']) ?></td>
                     <td>
@@ -67,10 +82,46 @@ require_once __DIR__ . '/../../layout/header.php';
                     </td>
                 </tr>
                 <?php endforeach; ?>
+                <tr id="noMatchesRow" class="table-empty-row" hidden>
+                    <td colspan="5" class="table-empty">Nenhuma localização corresponde aos filtros.</td>
+                </tr>
                 <?php endif; ?>
             </tbody>
         </table>
     </div>
 </div>
+
+<?php if (!empty($locations)): ?>
+<script>
+(function () {
+    const brandFilter  = document.getElementById('brandFilter');
+    const searchInput  = document.getElementById('locationSearch');
+    const rows          = Array.from(document.querySelectorAll('#auditTable tbody tr[data-brand]'));
+    const noMatchesRow  = document.getElementById('noMatchesRow');
+    const visibleCount  = document.getElementById('visibleCount');
+
+    function applyFilters() {
+        const brand = brandFilter.value;
+        const term  = searchInput.value.trim().toLowerCase();
+        let visible = 0;
+
+        rows.forEach(row => {
+            const matchesBrand  = !brand || row.dataset.brand === brand;
+            const matchesSearch = !term || row.dataset.search.includes(term);
+            const show = matchesBrand && matchesSearch;
+            row.hidden = !show;
+            if (show) visible++;
+        });
+
+        if (noMatchesRow) noMatchesRow.hidden = visible !== 0;
+        if (visibleCount) visibleCount.textContent = `${visible} de ${rows.length} visíveis`;
+    }
+
+    brandFilter.addEventListener('change', applyFilters);
+    searchInput.addEventListener('input', applyFilters);
+    applyFilters();
+})();
+</script>
+<?php endif; ?>
 
 <?php require_once __DIR__ . '/../../layout/footer.php'; ?>
