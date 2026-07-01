@@ -97,7 +97,7 @@ class ProfileController extends Controller
         // Refresh session with the updated data
         $fresh = $userModel->find($id);
         $_SESSION['user'] = [
-            'id'         => $fresh['id'],
+            'id'         => (int) $fresh['id'],
             'name'       => $fresh['name'],
             'email'      => $fresh['email'],
             'role'       => $fresh['role'],

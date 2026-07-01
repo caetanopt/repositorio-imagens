@@ -82,6 +82,13 @@ require_once __DIR__ . '/../../layout/header.php';
                                 data-active="<?= (int)$user['active'] ?>">
                             <?= $user['active'] ? 'Desactivar' : 'Activar' ?>
                         </button>
+                        <?php if (!$user['active']): ?>
+                        <button class="btn btn-xs btn-danger"
+                                data-delete-user="<?= e($user['id']) ?>"
+                                data-name="<?= e($user['name']) ?>">
+                            Apagar
+                        </button>
+                        <?php endif; ?>
                         <?php endif; ?>
                     </td>
                 </tr>
@@ -134,6 +141,20 @@ document.querySelectorAll('[data-toggle-user]').forEach(btn => {
             this.dataset.active = nowActive ? '1' : '0';
             this.disabled = false;
 
+            // Show/hide the "Apagar" button depending on the new status
+            let deleteBtn = row.querySelector('[data-delete-user]');
+            if (!nowActive && !deleteBtn) {
+                deleteBtn = document.createElement('button');
+                deleteBtn.className = 'btn btn-xs btn-danger';
+                deleteBtn.dataset.deleteUser = userId;
+                deleteBtn.dataset.name = row.querySelector('.user-cell')?.textContent.trim() ?? '';
+                deleteBtn.textContent = 'Apagar';
+                bindDeleteUserButton(deleteBtn);
+                this.after(deleteBtn);
+            } else if (nowActive && deleteBtn) {
+                deleteBtn.remove();
+            }
+
             window.toast?.success(`Utilizador ${nowActive ? 'activado' : 'desactivado'}.`);
         } catch (e) {
             this.disabled = false;
@@ -141,6 +162,51 @@ document.querySelectorAll('[data-toggle-user]').forEach(btn => {
         }
     });
 });
+
+function bindDeleteUserButton(btn) {
+    btn.addEventListener('click', async function () {
+        const userId = this.dataset.deleteUser;
+        const name   = this.dataset.name;
+        const row    = this.closest('tr');
+
+        const ok = await window.confirm2(
+            `Apagar definitivamente o utilizador "${name}"? Esta acção não pode ser revertida.`,
+            'Apagar utilizador'
+        );
+        if (!ok) return;
+
+        this.disabled = true;
+        try {
+            const res  = await fetch(`/admin/utilizadores/${userId}/eliminar`, {
+                method : 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body   : `csrf_token=${encodeURIComponent(window.APP?.csrfToken ?? '')}`,
+            });
+            const data = await res.json();
+            if (!data.success) {
+                this.disabled = false;
+                window.toast?.error(data.error || 'Não foi possível apagar o utilizador.');
+                return;
+            }
+            row.style.transition = 'opacity 0.25s';
+            row.style.opacity    = '0';
+            setTimeout(() => {
+                row.remove();
+                const counter = document.querySelector('.total-count');
+                if (counter) {
+                    const n = Math.max(0, (parseInt(counter.textContent) || 1) - 1);
+                    counter.textContent = `${n} utilizadores`;
+                }
+            }, 260);
+            window.toast?.success(`Utilizador "${name}" apagado.`);
+        } catch (e) {
+            this.disabled = false;
+            window.toast?.error('Erro de comunicação.');
+        }
+    });
+}
+
+document.querySelectorAll('[data-delete-user]').forEach(bindDeleteUserButton);
 </script>
 
 <?php require_once __DIR__ . '/../../layout/footer.php'; ?>

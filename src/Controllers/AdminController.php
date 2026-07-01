@@ -308,6 +308,36 @@ class AdminController extends Controller
         $this->json(['success' => true, 'active' => (bool) $fresh['active']]);
     }
 
+    public function userDelete(Request $request, array $params = []): void
+    {
+        $this->requirePermission('manage_users');
+        $this->requireCsrf();
+
+        $id        = (int) ($params['id'] ?? 0);
+        $userModel = new User();
+        $user      = $userModel->find($id);
+
+        if (!$user) {
+            $this->json(['success' => false, 'error' => 'Utilizador não encontrado.'], 404);
+        }
+
+        $me = $this->auth->user();
+        if ($me['id'] === $id) {
+            $this->json(['success' => false, 'error' => 'Não pode apagar a sua própria conta.'], 422);
+        }
+
+        if ((bool) $user['active']) {
+            $this->json(['success' => false, 'error' => 'Só é possível apagar utilizadores desactivados.'], 422);
+        }
+
+        $userModel->hardDelete($id);
+
+        $auditLog = new AuditLog();
+        $auditLog->log($me['id'], 'user_delete', 'user', $id, ['email' => $user['email']]);
+
+        $this->json(['success' => true]);
+    }
+
     // ─── Brands ───────────────────────────────────────────────────────────────
 
     public function brandList(Request $request, array $params = []): void

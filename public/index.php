@@ -39,7 +39,7 @@ if (empty($_SESSION['user']) && !empty($_COOKIE['remember_token'])) {
     $user = $userModel->findByRememberToken($_COOKIE['remember_token']);
     if ($user && $user['active']) {
         $_SESSION['user'] = [
-            'id'         => $user['id'],
+            'id'         => (int) $user['id'],
             'name'       => $user['name'],
             'email'      => $user['email'],
             'role'       => $user['role'],
@@ -96,6 +96,7 @@ $router->post('/admin/utilizadores/criar', 'AdminController@userStore');
 $router->get('/admin/utilizadores/:id/editar', 'AdminController@userEdit');
 $router->post('/admin/utilizadores/:id/editar', 'AdminController@userUpdate');
 $router->post('/admin/utilizadores/:id/activar', 'AdminController@userToggle');
+$router->post('/admin/utilizadores/:id/eliminar', 'AdminController@userDelete');
 
 // Admin — Brands
 $router->get('/admin/marcas', 'AdminController@brandList');
