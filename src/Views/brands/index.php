@@ -2,7 +2,7 @@
 
 <div class="repo-hero">
     <img src="<?= e(url('assets/img/caetano-logo.svg')) ?>" alt="Caetano" class="repo-hero-logo">
-    <h1 class="repo-hero-title">Repositório de Imagens</h1>
+    <h1 class="repo-hero-title">Repositório Digital</h1>
     <p class="repo-hero-sub"><?= e(count($brands)) ?> <?= count($brands) === 1 ? 'marca disponível' : 'marcas disponíveis' ?></p>
 </div>
 
