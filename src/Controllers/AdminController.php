@@ -515,11 +515,17 @@ class AdminController extends Controller
             $this->redirect('/admin/marcas/' . $brandId . '/localizacoes/criar');
         }
 
-        $locationId = $locationModel->create([
-            'name'     => $name,
-            'slug'     => $slug,
-            'brand_id' => $brandId,
-        ]);
+        try {
+            $locationId = $locationModel->create([
+                'name'     => $name,
+                'slug'     => $slug,
+                'brand_id' => $brandId,
+            ]);
+        } catch (\Throwable $e) {
+            error_log('locationStore failed: ' . $e->getMessage());
+            $this->setFlash('error', 'Não foi possível criar a localização. Tente um nome diferente.');
+            $this->redirect('/admin/marcas/' . $brandId . '/localizacoes/criar');
+        }
 
         $me       = $this->auth->user();
         $auditLog = new AuditLog();
@@ -631,11 +637,17 @@ class AdminController extends Controller
                 continue;
             }
 
-            $locationId = $locationModel->create([
-                'name'     => $row['location_name'],
-                'slug'     => $row['location_slug'],
-                'brand_id' => $row['brand_id'],
-            ]);
+            try {
+                $locationId = $locationModel->create([
+                    'name'     => $row['location_name'],
+                    'slug'     => $row['location_slug'],
+                    'brand_id' => $row['brand_id'],
+                ]);
+            } catch (\Throwable $e) {
+                error_log('Bulk location import failed for "' . $row['raw'] . '": ' . $e->getMessage());
+                $skipped++;
+                continue;
+            }
 
             $auditLog->log($me['id'], 'location_create', 'location', $locationId, [
                 'name'  => $row['location_name'],
