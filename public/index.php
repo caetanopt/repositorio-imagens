@@ -27,6 +27,10 @@ $lifetime = (int) env('SESSION_LIFETIME', 7200);
 ini_set('session.gc_maxlifetime', (string) $lifetime);
 session_set_cookie_params(['lifetime' => $lifetime, 'secure' => true, 'httponly' => true, 'samesite' => 'Lax']);
 
+// Store sessions in the database — Vercel's serverless instances don't
+// share a filesystem, so file-based sessions randomly "disappear" when a
+// request lands on a different instance than the one before it.
+session_set_save_handler(new \App\Core\DbSessionHandler($lifetime), true);
 session_start();
 
 // Remember-me auto-login
