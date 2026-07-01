@@ -544,6 +544,15 @@ code { font-family: 'SFMono-Regular', Consolas, monospace; font-size: .875em; ba
     right: .6rem;
     top: 50%;
     transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    padding: 0;
+    background: none;
+    border: none;
+    cursor: pointer;
     color: var(--text-muted);
     transition: color var(--transition);
 }
