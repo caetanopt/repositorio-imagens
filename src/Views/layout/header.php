@@ -171,8 +171,9 @@
                 </svg>
                 <span>Repositório</span>
             </a>
-            <?php if ($auth->can('manage_users')): ?>
+            <?php if ($auth->can('manage_users') || $auth->can('view_audit')): ?>
             <div class="sidebar-section-title">Administração</div>
+            <?php if ($auth->can('manage_users')): ?>
             <a href="<?= url('/admin/utilizadores') ?>" class="sidebar-item <?= strpos($_SERVER['REQUEST_URI'] ?? '', '/admin/utilizadores') === 0 ? 'active' : '' ?>">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
@@ -187,6 +188,8 @@
                 </svg>
                 <span>Marcas</span>
             </a>
+            <?php endif; ?>
+            <?php if ($auth->can('view_audit')): ?>
             <a href="<?= url('/admin/localizacoes/auditoria') ?>" class="sidebar-item <?= strpos($_SERVER['REQUEST_URI'] ?? '', '/admin/localizacoes/auditoria') === 0 ? 'active' : '' ?>">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M9 11l3 3L22 4"/>
@@ -194,6 +197,7 @@
                 </svg>
                 <span>Auditoria</span>
             </a>
+            <?php endif; ?>
             <?php endif; ?>
             <?php if ($auth->can('restore_images')): ?>
             <a href="<?= url('/admin/lixeira') ?>" class="sidebar-item <?= strpos($_SERVER['REQUEST_URI'] ?? '', '/admin/lixeira') === 0 ? 'active' : '' ?>">

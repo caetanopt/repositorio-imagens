@@ -21,6 +21,7 @@ class AuthService
         'restore_images'     => ['admin'],
         'hard_delete_images' => ['admin'],
         'view_admin'         => ['admin'],
+        'view_audit'         => ['admin', 'editor'],
     ];
 
     private User $userModel;

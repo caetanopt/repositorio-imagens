@@ -705,7 +705,7 @@ class AdminController extends Controller
 
     public function locationAudit(Request $request, array $params = []): void
     {
-        $this->requirePermission('manage_brands');
+        $this->requirePermission('view_audit');
 
         $locationModel = new Location();
         $locations     = $locationModel->findAllWithPhotoCounts();
