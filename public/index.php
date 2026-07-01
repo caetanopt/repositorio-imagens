@@ -108,6 +108,7 @@ $router->post('/admin/localizacoes/importar', 'AdminController@locationImportPre
 $router->post('/admin/localizacoes/importar/confirmar', 'AdminController@locationImportConfirm');
 
 // Admin — Images
+$router->get('/admin/lixeira', 'AdminController@trashList');
 $router->post('/admin/imagens/:id/restaurar', 'AdminController@imageRestore');
 $router->post('/admin/imagens/:id/eliminar', 'AdminController@imageHardDelete');
 

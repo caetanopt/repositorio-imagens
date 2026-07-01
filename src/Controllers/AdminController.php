@@ -11,6 +11,7 @@ use App\Models\Brand;
 use App\Models\Image;
 use App\Models\Location;
 use App\Models\User;
+use App\Services\StorageResolver;
 
 class AdminController extends Controller
 {
@@ -353,6 +354,29 @@ class AdminController extends Controller
     }
 
     // ─── Deleted Images ───────────────────────────────────────────────────────
+
+    public function trashList(Request $request, array $params = []): void
+    {
+        $this->requirePermission('restore_images');
+
+        $imageModel = new Image();
+        $images     = $imageModel->findDeleted();
+
+        $base = rtrim(env('APP_URL', ''), '/') . '/storage/images/';
+        foreach ($images as &$image) {
+            $brandSlug          = $image['brand_slug'] ?? slugify($image['brand_name'] ?? '');
+            $image['thumb_url'] = StorageResolver::resolveUrl($image['thumb_filepath'] ?? '', $base . $brandSlug);
+        }
+        unset($image);
+
+        $this->render('admin/trash/index', [
+            'images'          => $images,
+            'can_hard_delete' => $this->auth->can('hard_delete_images'),
+            'flash_ok'        => $this->getFlash('success'),
+            'flash_error'     => $this->getFlash('error'),
+            'csrf_token'      => $this->csrfToken(),
+        ]);
+    }
 
     public function imageRestore(Request $request, array $params = []): void
     {

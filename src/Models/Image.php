@@ -133,7 +133,9 @@ class Image extends Model
         $stmt = $this->db()->query(
             "SELECT i.*,
                     b.name AS brand_name,
+                    b.slug AS brand_slug,
                     l.name AS location_name,
+                    l.slug AS location_slug,
                     u.name AS uploader_name
              FROM images i
              INNER JOIN brands    b ON b.id = i.brand_id
