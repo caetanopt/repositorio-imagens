@@ -109,6 +109,8 @@ $router->post('/admin/localizacoes/importar/confirmar', 'AdminController@locatio
 
 // Admin — Images
 $router->get('/admin/lixeira', 'AdminController@trashList');
+$router->post('/admin/lixeira/purgar-antigas', 'AdminController@trashPurgeOld');
+$router->post('/admin/imagens/eliminar-em-massa', 'AdminController@imageBulkHardDelete');
 $router->post('/admin/imagens/:id/restaurar', 'AdminController@imageRestore');
 $router->post('/admin/imagens/:id/eliminar', 'AdminController@imageHardDelete');
 

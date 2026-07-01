@@ -17,7 +17,7 @@ class LocationController extends Controller
 {
     use ValidatesUpload;
 
-    private const MAX_PHOTOS = 4;
+    public const MAX_PHOTOS = 4;
 
     public function photos(Request $request, array $params = []): void
     {
@@ -379,26 +379,10 @@ class LocationController extends Controller
             $this->json(['success' => false, 'error' => 'Sem permissão para eliminar esta imagem.'], 403);
         }
 
+        // Soft delete only — files stay in storage so the image can still be
+        // restored from the Lixeira. They are only removed permanently on
+        // hard delete.
         $imageModel->softDelete($id);
-
-        // Delete files from Supabase Storage
-        $storage = new SupabaseStorage();
-        if ($storage->isConfigured()) {
-            $paths = array_unique(array_filter([
-                $image['filepath']          ?? '',
-                $image['thumb_filepath']    ?? '',
-                $image['original_filepath'] ?? '',
-            ], fn($p) => str_starts_with($p, 'http')));
-
-            if (!empty($paths)) {
-                $storagePaths = array_map([$storage, 'pathFromUrl'], $paths);
-                try {
-                    $storage->delete($storagePaths);
-                } catch (\Throwable $e) {
-                    error_log('SupabaseStorage::delete failed: ' . $e->getMessage());
-                }
-            }
-        }
 
         $auditLog = new AuditLog();
         $auditLog->log($user['id'], 'image_delete', 'image', $id, [

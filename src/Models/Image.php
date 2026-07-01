@@ -186,6 +186,38 @@ class Image extends Model
         return (int) ($row['cnt'] ?? 0);
     }
 
+    /**
+     * Finds an active (non-deleted) image occupying the given slot for a
+     * location, if any. Used to prevent restoring into an already-taken slot.
+     */
+    public function findActiveBySlot(int $brandId, int $locationId, int $slot): ?array
+    {
+        $row = $this->db()->query(
+            'SELECT * FROM "images"
+             WHERE "brand_id" = ? AND "location_id" = ? AND "slot" = ? AND "deleted_at" IS NULL',
+            [$brandId, $locationId, $slot]
+        )->fetch();
+        return $row ?: null;
+    }
+
+    /**
+     * Deleted images older than the given number of days, oldest first.
+     */
+    public function findDeletedOlderThan(int $days): array
+    {
+        $stmt = $this->db()->query(
+            "SELECT i.*, b.name AS brand_name, l.name AS location_name
+             FROM images i
+             INNER JOIN brands    b ON b.id = i.brand_id
+             INNER JOIN locations l ON l.id = i.location_id
+             WHERE i.deleted_at IS NOT NULL
+               AND i.deleted_at < NOW() - (? || ' days')::interval
+             ORDER BY i.deleted_at ASC",
+            [$days]
+        );
+        return $stmt->fetchAll();
+    }
+
     public function findByLocation(int $brandId, int $locationId): array
     {
         return $this->db()->query(

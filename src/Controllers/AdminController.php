@@ -12,6 +12,7 @@ use App\Models\Image;
 use App\Models\Location;
 use App\Models\User;
 use App\Services\StorageResolver;
+use App\Services\SupabaseStorage;
 
 class AdminController extends Controller
 {
@@ -355,6 +356,8 @@ class AdminController extends Controller
 
     // ─── Deleted Images ───────────────────────────────────────────────────────
 
+    private const TRASH_RETENTION_DAYS = 30;
+
     public function trashList(Request $request, array $params = []): void
     {
         $this->requirePermission('restore_images');
@@ -366,15 +369,20 @@ class AdminController extends Controller
         foreach ($images as &$image) {
             $brandSlug          = $image['brand_slug'] ?? slugify($image['brand_name'] ?? '');
             $image['thumb_url'] = StorageResolver::resolveUrl($image['thumb_filepath'] ?? '', $base . $brandSlug);
+            $image['is_old']    = strtotime($image['deleted_at']) < strtotime('-' . self::TRASH_RETENTION_DAYS . ' days');
         }
         unset($image);
 
+        $oldCount = count(array_filter($images, fn($img) => $img['is_old']));
+
         $this->render('admin/trash/index', [
-            'images'          => $images,
-            'can_hard_delete' => $this->auth->can('hard_delete_images'),
-            'flash_ok'        => $this->getFlash('success'),
-            'flash_error'     => $this->getFlash('error'),
-            'csrf_token'      => $this->csrfToken(),
+            'images'           => $images,
+            'old_count'        => $oldCount,
+            'retention_days'   => self::TRASH_RETENTION_DAYS,
+            'can_hard_delete'  => $this->auth->can('hard_delete_images'),
+            'flash_ok'         => $this->getFlash('success'),
+            'flash_error'      => $this->getFlash('error'),
+            'csrf_token'       => $this->csrfToken(),
         ]);
     }
 
@@ -389,6 +397,10 @@ class AdminController extends Controller
 
         if (!$image) {
             $this->json(['success' => false, 'error' => 'Imagem não encontrada.'], 404);
+        }
+
+        if ($conflict = $this->findRestoreConflict($imageModel, $image)) {
+            $this->json(['success' => false, 'error' => $conflict], 422);
         }
 
         $imageModel->restore($id);
@@ -415,13 +427,7 @@ class AdminController extends Controller
             $this->json(['success' => false, 'error' => 'Imagem não encontrada.'], 404);
         }
 
-        // Delete physical files
-        foreach (['filepath', 'original_filepath', 'thumb_filepath'] as $field) {
-            if (!empty($image[$field]) && file_exists($image[$field])) {
-                @unlink($image[$field]);
-            }
-        }
-
+        $this->deleteImageFiles($image);
         $imageModel->hardDelete($id);
 
         $me = $this->auth->user();
@@ -431,6 +437,128 @@ class AdminController extends Controller
         ]);
 
         $this->json(['success' => true]);
+    }
+
+    public function imageBulkHardDelete(Request $request, array $params = []): void
+    {
+        $this->requirePermission('hard_delete_images');
+        $this->requireCsrf();
+
+        $ids = $request->post('ids', []);
+        if (!is_array($ids) || empty($ids)) {
+            $this->json(['success' => false, 'error' => 'Nenhuma imagem seleccionada.'], 422);
+        }
+        $ids = array_filter(array_map('intval', $ids));
+
+        $imageModel = new Image();
+        $me         = $this->auth->user();
+        $auditLog   = new AuditLog();
+        $deleted    = 0;
+
+        foreach ($ids as $id) {
+            $image = $imageModel->findWithRelations($id);
+
+            // Only allow permanently deleting images that are already in the trash.
+            if (!$image || empty($image['deleted_at'])) {
+                continue;
+            }
+
+            $this->deleteImageFiles($image);
+            $imageModel->hardDelete($id);
+
+            $auditLog->log($me['id'], 'image_hard_delete', 'image', $id, [
+                'filename' => $image['original_filename'],
+            ]);
+
+            $deleted++;
+        }
+
+        $this->json(['success' => true, 'deleted' => $deleted]);
+    }
+
+    public function trashPurgeOld(Request $request, array $params = []): void
+    {
+        $this->requirePermission('hard_delete_images');
+        $this->requireCsrf();
+
+        $imageModel = new Image();
+        $images     = $imageModel->findDeletedOlderThan(self::TRASH_RETENTION_DAYS);
+
+        $me       = $this->auth->user();
+        $auditLog = new AuditLog();
+        $deleted  = 0;
+
+        foreach ($images as $image) {
+            $this->deleteImageFiles($image);
+            $imageModel->hardDelete((int) $image['id']);
+
+            $auditLog->log($me['id'], 'image_hard_delete', 'image', (int) $image['id'], [
+                'filename' => $image['original_filename'],
+                'reason'   => 'trash_auto_purge_' . self::TRASH_RETENTION_DAYS . 'd',
+            ]);
+
+            $deleted++;
+        }
+
+        $this->setFlash('success', "{$deleted} imagem(ns) com mais de " . self::TRASH_RETENTION_DAYS . " dias na lixeira foram eliminadas definitivamente.");
+        $this->redirect('/admin/lixeira');
+    }
+
+    /**
+     * Checks whether restoring $image would collide with an image already
+     * occupying its slot, or would exceed the location's photo limit.
+     * Returns an error message if restoring should be blocked, null otherwise.
+     */
+    private function findRestoreConflict(Image $imageModel, array $image): ?string
+    {
+        $brandId    = (int) $image['brand_id'];
+        $locationId = (int) $image['location_id'];
+        $slot       = $image['slot'] !== null ? (int) $image['slot'] : null;
+
+        if ($slot !== null) {
+            if ($imageModel->findActiveBySlot($brandId, $locationId, $slot)) {
+                return 'Já existe uma imagem carregada nesse lugar da localização. Remova-a primeiro para poder restaurar esta.';
+            }
+            return null;
+        }
+
+        if ($imageModel->countByLocation($brandId, $locationId) >= LocationController::MAX_PHOTOS) {
+            return 'Esta localização já atingiu o número máximo de fotos. Não é possível restaurar.';
+        }
+
+        return null;
+    }
+
+    /**
+     * Deletes the physical files (local disk and/or Supabase Storage) backing
+     * an image record. Used by both single and bulk permanent deletion.
+     */
+    private function deleteImageFiles(array $image): void
+    {
+        $fields = ['filepath', 'original_filepath', 'thumb_filepath'];
+
+        foreach ($fields as $field) {
+            $path = $image[$field] ?? '';
+            if ($path !== '' && !str_starts_with($path, 'http') && file_exists($path)) {
+                @unlink($path);
+            }
+        }
+
+        $storage = new SupabaseStorage();
+        if ($storage->isConfigured()) {
+            $remotePaths = array_unique(array_filter(
+                array_map(fn($f) => $image[$f] ?? '', $fields),
+                fn($p) => str_starts_with($p, 'http')
+            ));
+
+            if (!empty($remotePaths)) {
+                try {
+                    $storage->delete(array_map([$storage, 'pathFromUrl'], $remotePaths));
+                } catch (\Throwable $e) {
+                    error_log('SupabaseStorage::delete failed: ' . $e->getMessage());
+                }
+            }
+        }
     }
 
     // ─── Locations ────────────────────────────────────────────────────────────────
