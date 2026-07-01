@@ -11,14 +11,11 @@ use App\Models\Brand;
 use App\Models\Image;
 use App\Models\Location;
 use App\Services\ImageService;
+use App\Traits\ValidatesUpload;
 
 class UploadController extends Controller
 {
-    private const MAX_SIZE_BYTES  = 20 * 1024 * 1024; // 20 MB default
-    private const ALLOWED_MIMES   = [
-        'image/jpeg', 'image/jpg', 'image/png',
-        'image/gif', 'image/webp', 'image/bmp',
-    ];
+    use ValidatesUpload;
 
     public function showForm(Request $request, array $params = []): void
     {
@@ -65,23 +62,8 @@ class UploadController extends Controller
             ], 422);
         }
 
-        // Validate size
-        $maxBytes = ((int) env('UPLOAD_MAX_SIZE_MB', 20)) * 1024 * 1024;
-        if ($uploadedFile['size'] > $maxBytes) {
-            $this->json([
-                'success' => false,
-                'error'   => 'Ficheiro demasiado grande. Máximo: ' . env('UPLOAD_MAX_SIZE_MB', 20) . ' MB.',
-            ], 422);
-        }
-
-        // Validate MIME (real, not spoofed)
-        $mime = mime_content_type($uploadedFile['tmp_name']);
-        if (!in_array($mime, self::ALLOWED_MIMES, true)) {
-            $this->json([
-                'success' => false,
-                'error'   => 'Tipo de ficheiro não suportado. Permitido: JPG, PNG, GIF, WEBP.',
-            ], 422);
-        }
+        $this->validateUploadedFileSize($uploadedFile['size'], (int) env('UPLOAD_MAX_SIZE_MB', 20));
+        $mime = $this->validateUploadedFileType($uploadedFile['tmp_name']);
 
         // Validate magic bytes to prevent disguised executables
         $magicSignatures = [

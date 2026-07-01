@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Iniciar sessão — <?= e(env('APP_NAME', 'Repositório de Imagens')) ?></title>
+    <link rel="icon" type="image/svg+xml" href="https://assets.caetano.pt/img/favicon.svg">
     <link rel="stylesheet" href="<?= e(url('assets/css/app.css')) ?>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">

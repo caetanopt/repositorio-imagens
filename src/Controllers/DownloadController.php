@@ -8,6 +8,7 @@ use App\Core\Controller;
 use App\Core\Request;
 use App\Models\AuditLog;
 use App\Models\Image;
+use App\Services\StorageResolver;
 use App\Services\ZipService;
 
 class DownloadController extends Controller
@@ -60,7 +61,7 @@ class DownloadController extends Controller
         }
 
         // Resolve absolute path for local/disk storage
-        $absPath = $this->resolvePath($filePath, $storageBase, $brandSlug);
+        $absPath = StorageResolver::resolvePath($filePath, $storageBase, $brandSlug);
 
         if (!file_exists($absPath)) {
             http_response_code(404);
@@ -143,21 +144,7 @@ class DownloadController extends Controller
         $this->streamFile($tmpPath, $originalFilename, $mime, true);
     }
 
-    private function resolvePath(string $filePath, string $storageBase, string $brandSlug): string
-    {
-        if (file_exists($filePath)) {
-            return $filePath;
-        }
-
-        $candidate = rtrim($storageBase, '/') . '/' . $brandSlug . '/' . basename($filePath);
-        if (file_exists($candidate)) {
-            return $candidate;
-        }
-
-        return $filePath;
-    }
-
-    private function streamFile(string $path, string $filename, string $mime = '', bool $deleteAfter = false): never
+private function streamFile(string $path, string $filename, string $mime = '', bool $deleteAfter = false): never
     {
         if (empty($mime)) {
             $mime = mime_content_type($path) ?: 'application/octet-stream';

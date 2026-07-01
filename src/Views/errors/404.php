@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>404 — Página não encontrada</title>
+    <link rel="icon" type="image/svg+xml" href="https://assets.caetano.pt/img/favicon.svg">
     <style>
         body { font-family: 'Inter', sans-serif; display: flex; align-items: center; justify-content: center;
                height: 100vh; margin: 0; background: #f8f9fa; }

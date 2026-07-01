@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="<?= e($_SESSION['csrf_token'] ?? '') ?>">
     <title><?= e($pageTitle ?? 'Repositório de Imagens') ?> — <?= e(env('APP_NAME', 'Repositório de Imagens')) ?></title>
+    <link rel="icon" type="image/svg+xml" href="https://assets.caetano.pt/img/favicon.svg">
     <link rel="stylesheet" href="<?= e(url('assets/css/app.css')) ?>?v=<?= ASSET_VER ?>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
