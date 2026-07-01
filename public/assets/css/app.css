@@ -1594,7 +1594,7 @@ body.lightbox-open { overflow: hidden; }
 
 .login-brand svg { margin: 0 auto .75rem; }
 
-.login-brand-logo { height: 40px; width: auto; margin: 0 auto 1rem; display: block; }
+.login-brand-logo { height: 60px; width: auto; margin: 0 auto 2rem; display: block; }
 
 .login-brand h1 { font-size: 1.4rem; font-weight: 700; color: #fff; }
 
