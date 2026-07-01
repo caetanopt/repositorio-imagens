@@ -721,6 +721,8 @@ class AdminController extends Controller
             $this->redirect('/admin/marcas');
         }
 
+        $brand['logo_url'] = $brandModel->logoUrl($brand['slug']);
+
         $locationModel = new Location();
         $locations     = $locationModel->findByBrand($brandId);
 
@@ -751,6 +753,8 @@ class AdminController extends Controller
         if (!$brand) {
             $this->redirect('/admin/marcas');
         }
+
+        $brand['logo_url'] = $brandModel->logoUrl($brand['slug']);
 
         $this->render('admin/brands/location_form', [
             'brand'       => $brand,

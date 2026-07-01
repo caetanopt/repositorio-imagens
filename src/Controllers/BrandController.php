@@ -17,15 +17,8 @@ class BrandController extends Controller
         $brandModel = new Brand();
         $brands     = $brandModel->findAllWithLocationCounts();
 
-        $logoBase = __DIR__ . '/../../public/assets/img/brands/';
         foreach ($brands as &$brand) {
-            $brand['logo_url'] = null;
-            foreach (['.png', '.svg'] as $ext) {
-                if (file_exists($logoBase . $brand['slug'] . $ext)) {
-                    $brand['logo_url'] = url('assets/img/brands/' . $brand['slug'] . $ext);
-                    break;
-                }
-            }
+            $brand['logo_url'] = $brandModel->logoUrl($brand['slug']);
         }
         unset($brand);
 
@@ -50,6 +43,8 @@ class BrandController extends Controller
             require __DIR__ . '/../Views/errors/404.php';
             exit;
         }
+
+        $brand['logo_url'] = $brandModel->logoUrl($brand['slug']);
 
         $locationModel = new Location();
         $locations     = $locationModel->findByBrand($brand['id']);

@@ -2089,6 +2089,15 @@ body.lightbox-open { overflow: hidden; }
     box-shadow: 0 4px 12px rgba(13, 46, 93, .25);
 }
 
+.brand-header-monogram-logo {
+    max-width: 70%;
+    max-height: 70%;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    filter: brightness(0) invert(1);
+}
+
 .brand-header-name {
     font-size: 1.75rem;
     font-weight: 700;

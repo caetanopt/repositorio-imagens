@@ -9,7 +9,13 @@
     </a>
     <div class="brand-header-body">
         <div class="brand-header-identity">
-            <div class="brand-header-monogram"><?= e(mb_substr($brand['name'], 0, 1)) ?></div>
+            <div class="brand-header-monogram">
+                <?php if (!empty($brand['logo_url'])): ?>
+                <img src="<?= e($brand['logo_url']) ?>" alt="<?= e($brand['name']) ?>" class="brand-header-monogram-logo">
+                <?php else: ?>
+                <?= e(mb_substr($brand['name'], 0, 1)) ?>
+                <?php endif; ?>
+            </div>
             <div>
                 <h1 class="brand-header-name">Localizações</h1>
                 <p class="brand-header-meta"><?= e(count($locations)) ?> <?= count($locations) === 1 ? 'localização' : 'localizações' ?></p>

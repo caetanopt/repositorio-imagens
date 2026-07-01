@@ -39,4 +39,18 @@ class Brand extends Model
         );
         return $stmt->fetchAll();
     }
+
+    /**
+     * Resolves the public URL of a brand's logo file, if one exists on disk.
+     */
+    public function logoUrl(string $slug): ?string
+    {
+        $logoBase = __DIR__ . '/../../public/assets/img/brands/';
+        foreach (['.png', '.svg'] as $ext) {
+            if (file_exists($logoBase . $slug . $ext)) {
+                return url('assets/img/brands/' . $slug . $ext);
+            }
+        }
+        return null;
+    }
 }

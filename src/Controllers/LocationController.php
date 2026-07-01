@@ -28,6 +28,8 @@ class LocationController extends Controller
             $params['loc_slug']   ?? ''
         );
 
+        $brand['logo_url'] = (new Brand())->logoUrl($brand['slug']);
+
         $imageModel = new Image();
         $rawImages  = $imageModel->findByLocation($brand['id'], $location['id']);
         $base       = rtrim(env('APP_URL', ''), '/') . '/storage/images/' . $brand['slug'];
