@@ -57,7 +57,25 @@ require_once __DIR__ . '/../layout/header.php';
             </div>
 
             <div class="form-group">
-                <label class="form-label">Função</label>
+                <label class="form-label" for="role">Função<?= $can_manage_role ? ' <span class="required">*</span>' : '' ?></label>
+                <?php if ($can_manage_role): ?>
+                <select id="role" name="role" class="form-select" required>
+                    <?php
+                    $currentRole = old('role', $user['role']);
+                    $roles = ['admin' => 'Administrador', 'editor' => 'Editor', 'viewer' => 'Visualizador'];
+                    foreach ($roles as $value => $label):
+                    ?>
+                    <option value="<?= e($value) ?>" <?= $currentRole === $value ? 'selected' : '' ?>>
+                        <?= e($label) ?>
+                    </option>
+                    <?php endforeach; ?>
+                </select>
+                <div class="form-hint-block">
+                    <p><strong>Administrador</strong> — Acesso total, gestão de utilizadores e marcas</p>
+                    <p><strong>Editor</strong> — Carregar, converter, transferir originais</p>
+                    <p><strong>Visualizador</strong> — Apenas visualizar e transferir imagens optimizadas</p>
+                </div>
+                <?php else: ?>
                 <div>
                     <span class="badge badge-role badge-<?= e($user['role']) ?>">
                         <?= e(match ($user['role']) {
@@ -68,6 +86,7 @@ require_once __DIR__ . '/../layout/header.php';
                     </span>
                 </div>
                 <p class="form-hint-text">A função só pode ser alterada por um administrador.</p>
+                <?php endif; ?>
             </div>
         </div>
 

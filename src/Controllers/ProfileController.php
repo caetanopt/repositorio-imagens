@@ -20,10 +20,11 @@ class ProfileController extends Controller
         $user      = $userModel->find((int) $this->auth->user()['id']);
 
         $this->render('profile/edit', [
-            'user'        => $user,
-            'flash_ok'    => $this->getFlash('success'),
-            'flash_error' => $this->getFlash('error'),
-            'csrf_token'  => $this->csrfToken(),
+            'user'            => $user,
+            'can_manage_role' => $this->auth->can('manage_users'),
+            'flash_ok'        => $this->getFlash('success'),
+            'flash_error'     => $this->getFlash('error'),
+            'csrf_token'      => $this->csrfToken(),
         ]);
     }
 
@@ -59,6 +60,16 @@ class ProfileController extends Controller
         }
 
         $updateData = [];
+
+        $canManageRole = $this->auth->can('manage_users');
+        if ($canManageRole) {
+            $role = $request->post('role', $user['role']);
+            if (!in_array($role, ['admin', 'editor', 'viewer'], true)) {
+                $errors[] = 'Função inválida.';
+            } else {
+                $updateData['role'] = $role;
+            }
+        }
 
         $newPassword = trim($request->post('new_password', ''));
         if ($newPassword !== '') {
