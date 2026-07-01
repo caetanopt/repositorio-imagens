@@ -442,6 +442,16 @@ $filledCount   = count($images);
         if (uploading) uploading.style.display = 'flex';
         if (content)   content.style.display   = 'none';
 
+        // Files that skip client-side compression (GIFs, non-image types)
+        // must still be checked here — otherwise an oversized file reaches
+        // the network layer untouched and Vercel's platform-level request
+        // size limit drops the connection outright, showing a confusing
+        // "Failed to fetch" instead of a clear error.
+        if (file.size > uploadMaxMb * 1024 * 1024) {
+            showToast('Ficheiro demasiado grande. Máximo: ' + uploadMaxMb + ' MB.', 'error');
+            restoreSlot(); return;
+        }
+
         if (file.type.startsWith('image/') && file.type !== 'image/gif') {
             try {
                 file = await optimiseImage(file);
@@ -484,7 +494,10 @@ $filledCount   = count($images);
                 restoreSlot();
             }
         } catch (e) {
-            showToast(e.message || 'Erro de comunicação.', 'error');
+            const msg = e.message === 'Failed to fetch'
+                ? 'Falha de rede a enviar o ficheiro. Verifica a ligação e o tamanho do ficheiro e tenta novamente.'
+                : (e.message || 'Erro de comunicação.');
+            showToast(msg, 'error');
             restoreSlot();
         }
         pendingUploads--;
