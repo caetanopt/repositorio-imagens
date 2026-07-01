@@ -115,14 +115,20 @@ class Image extends Model
             }
         }
 
-        // Full-text search on filename
+        // Full-text search on filename/brand/location — splits into words
+        // (e.g. "audi aveiro" or "audi - aveiro") and requires every word to
+        // match, so a brand + location combination finds the right images
+        // regardless of word order or separator.
         if (!empty($filters['search'])) {
-            $where[]  = "(i.original_filename ILIKE ? OR b.name ILIKE ? OR l.name ILIKE ?)";
-            $escaped  = str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $filters['search']);
-            $term     = '%' . $escaped . '%';
-            $params[] = $term;
-            $params[] = $term;
-            $params[] = $term;
+            $tokens = preg_split('/[\s\-]+/u', trim($filters['search']), -1, PREG_SPLIT_NO_EMPTY);
+            foreach ($tokens as $token) {
+                $escaped  = str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $token);
+                $term     = '%' . $escaped . '%';
+                $where[]  = "(i.original_filename ILIKE ? OR b.name ILIKE ? OR l.name ILIKE ?)";
+                $params[] = $term;
+                $params[] = $term;
+                $params[] = $term;
+            }
         }
 
         return [$where, $params];

@@ -21,21 +21,38 @@ class Location extends Model
 
     /**
      * Full-text search across location and brand names.
+     * Splits the query into words (e.g. "audi aveiro" or "audi - aveiro")
+     * and requires every word to match the brand or the location name, so
+     * a brand + location combination finds the right result regardless of
+     * word order or separator.
      * Returns up to $limit results with brand info for autocomplete.
      */
     public function search(string $query, int $limit = 10): array
     {
-        $escaped = str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $query);
-        $like    = '%' . $escaped . '%';
+        $tokens = preg_split('/[\s\-]+/u', trim($query), -1, PREG_SPLIT_NO_EMPTY);
+        if (empty($tokens)) {
+            return [];
+        }
+
+        $where  = [];
+        $params = [];
+        foreach ($tokens as $token) {
+            $escaped  = str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $token);
+            $like     = '%' . $escaped . '%';
+            $where[]  = '(l.name ILIKE ? OR b.name ILIKE ?)';
+            $params[] = $like;
+            $params[] = $like;
+        }
+
         return $this->db()->query(
             'SELECT l.slug AS loc_slug, l.name AS loc_name,
                     b.slug AS brand_slug, b.name AS brand_name
              FROM "locations" l
              JOIN "brands" b ON b.id = l.brand_id
-             WHERE l.name ILIKE ? OR b.name ILIKE ?
+             WHERE ' . implode(' AND ', $where) . '
              ORDER BY b.name ASC, l.name ASC
              LIMIT ' . (int) $limit,
-            [$like, $like]
+            $params
         )->fetchAll();
     }
 
