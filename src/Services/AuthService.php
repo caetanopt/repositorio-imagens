@@ -11,7 +11,7 @@ class AuthService
     private const PERMISSIONS = [
         'upload'             => ['admin', 'editor'],
         'download'           => ['admin', 'editor', 'viewer'],
-        'delete_any'         => ['admin'],
+        'delete_any'         => ['admin', 'editor'],
         'delete_own'         => ['admin', 'editor'],
         'manage_users'       => ['admin'],
         'manage_brands'      => ['admin'],
