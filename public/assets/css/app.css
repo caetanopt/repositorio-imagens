@@ -1691,6 +1691,11 @@ body.lightbox-open { overflow: hidden; }
     filter: brightness(0);
 }
 
+/* Spoticar keeps its original brand colours instead of the forced-black logo */
+.brand-card-logo[src*="spoticar"] {
+    filter: none;
+}
+
 .brand-card-monogram {
     font-size: 1.3rem;
     font-weight: 700;
