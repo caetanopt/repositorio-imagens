@@ -91,9 +91,20 @@ if (!function_exists('csrf_field')) {
 }
 
 if (!function_exists('old')) {
+    /**
+     * Reads a value flashed via Controller::setOld() for exactly one render
+     * (e.g. to repopulate a form after a validation error), then discards
+     * it — without this, a stale value keeps leaking into unrelated forms
+     * on every later page load until something else happens to overwrite it.
+     */
     function old(string $key, mixed $default = ''): mixed
     {
-        return $_SESSION['old'][$key] ?? $default;
+        if (!array_key_exists($key, $_SESSION['old'] ?? [])) {
+            return $default;
+        }
+        $value = $_SESSION['old'][$key];
+        unset($_SESSION['old'][$key]);
+        return $value;
     }
 }
 
