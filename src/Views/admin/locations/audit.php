@@ -63,8 +63,8 @@ require_once __DIR__ . '/../../layout/header.php';
                     <td><span class="badge badge-brand"><?= e($loc['brand_name']) ?></span></td>
                     <td><?= e($loc['name']) ?></td>
                     <td>
-                        <span class="badge <?= $loc['photo_count'] >= $max_photos ? 'badge-viewer' : 'badge-admin' ?>">
-                            <?= e($loc['photo_count']) ?> / <?= e($max_photos) ?>
+                        <span class="badge <?= $loc['photo_count'] >= $loc['max_photos'] ? 'badge-viewer' : 'badge-admin' ?>">
+                            <?= e($loc['photo_count']) ?> / <?= e($loc['max_photos']) ?>
                         </span>
                     </td>
                     <td>

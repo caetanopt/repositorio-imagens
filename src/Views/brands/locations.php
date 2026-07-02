@@ -60,7 +60,7 @@
                 <div class="location-card-thumbnails">
                     <?php
                     $previews = $loc['preview_images'] ?? [];
-                    for ($i = 0; $i < 4; $i++):
+                    for ($i = 0; $i < $max_photos; $i++):
                         $thumbUrl = $previews[$i]['thumb_url'] ?? '';
                         if (!empty($thumbUrl)):
                     ?>
@@ -88,10 +88,10 @@
                 <div class="location-card-info">
                     <div class="location-card-name"><?= e($loc['name']) ?></div>
                     <div class="location-card-count">
-                        <span><?= e($loc['image_count']) ?> / 4</span>
+                        <span><?= e($loc['image_count']) ?> / <?= e($max_photos) ?></span>
                         <div class="location-count-bar">
-                            <div class="location-count-fill <?= $loc['image_count'] >= 4 ? 'location-count-fill--full' : '' ?>"
-                                 style="width:<?= e(($loc['image_count'] / 4) * 100) ?>%"></div>
+                            <div class="location-count-fill <?= $loc['image_count'] >= $max_photos ? 'location-count-fill--full' : '' ?>"
+                                 style="width:<?= e(($loc['image_count'] / $max_photos) * 100) ?>%"></div>
                         </div>
                     </div>
                 </div>

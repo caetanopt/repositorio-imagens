@@ -5,8 +5,10 @@
  *   $brand           — brand row
  *   $brandLocations  — locations array, each with image_count
  *   $currentLocationId (optional) — highlights the active location
+ *   $max_photos      (optional) — photo slot limit for this brand
  */
-$currentLocationId = $currentLocationId ?? null;
+$currentLocationId  = $currentLocationId ?? null;
+$sidebarMaxPhotos   = $max_photos ?? \App\Controllers\LocationController::MAX_PHOTOS;
 ?>
 <aside class="brand-sidebar">
     <div class="brand-sidebar-header">
@@ -28,10 +30,10 @@ $currentLocationId = $currentLocationId ?? null;
            class="brand-sidebar-item <?= $isActive ? 'brand-sidebar-item--active' : '' ?>">
             <span class="brand-sidebar-item-name"><?= e($loc['name']) ?></span>
             <div class="brand-sidebar-item-count">
-                <span class="brand-sidebar-item-num"><?= e($loc['image_count']) ?>/4</span>
+                <span class="brand-sidebar-item-num"><?= e($loc['image_count']) ?>/<?= e($sidebarMaxPhotos) ?></span>
                 <div class="location-count-bar">
-                    <div class="location-count-fill <?= $loc['image_count'] >= 4 ? 'location-count-fill--full' : '' ?>"
-                         style="width:<?= e(($loc['image_count'] / 4) * 100) ?>%"></div>
+                    <div class="location-count-fill <?= $loc['image_count'] >= $sidebarMaxPhotos ? 'location-count-fill--full' : '' ?>"
+                         style="width:<?= e(($loc['image_count'] / $sidebarMaxPhotos) * 100) ?>%"></div>
                 </div>
             </div>
         </a>

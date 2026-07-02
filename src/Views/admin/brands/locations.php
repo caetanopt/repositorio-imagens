@@ -57,8 +57,8 @@
                     <td><strong><?= e($loc['name']) ?></strong></td>
                     <td><code class="code-slug"><?= e($loc['slug']) ?></code></td>
                     <td>
-                        <span class="badge <?= $loc['image_count'] >= 4 ? 'badge-brand' : 'badge-viewer' ?>">
-                            <?= e($loc['image_count']) ?> / 4
+                        <span class="badge <?= $loc['image_count'] >= $max_photos ? 'badge-brand' : 'badge-viewer' ?>">
+                            <?= e($loc['image_count']) ?> / <?= e($max_photos) ?>
                         </span>
                     </td>
                     <td class="table-actions">

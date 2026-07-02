@@ -1,19 +1,23 @@
 <?php require_once __DIR__ . '/../layout/header.php'; ?>
 
 <?php
-$slotNames = $brand['slug'] === 'caetano-parts'
-    ? [
+$slotNames = match ($brand['slug']) {
+    'caetano-parts' => [
         1 => 'Fachada',
         2 => 'Escritórios',
         3 => 'Armazém',
         4 => 'Balcão de atendimento',
-    ]
-    : [
+    ],
+    'caetano-retail-park' => [
+        1 => 'Fotografia de Drone',
+    ],
+    default => [
         1 => 'Foto da Fachada',
         2 => 'Foto do Showroom',
         3 => 'Foto da Receção de Oficina',
         4 => 'Foto de Oficina — Interior',
-    ];
+    ],
+};
 $canUploadBase = $auth->can('upload');
 $canDelete     = $auth->can('delete_any') || $auth->can('delete_own');
 $filledCount   = count($images);

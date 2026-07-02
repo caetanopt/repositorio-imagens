@@ -662,7 +662,8 @@ class AdminController extends Controller
             return null;
         }
 
-        if ($imageModel->countByLocation($brandId, $locationId) >= LocationController::MAX_PHOTOS) {
+        $maxPhotos = LocationController::maxPhotosForBrand($image['brand_slug'] ?? '');
+        if ($imageModel->countByLocation($brandId, $locationId) >= $maxPhotos) {
             return 'Esta localização já atingiu o número máximo de fotos. Não é possível restaurar.';
         }
 
@@ -710,10 +711,11 @@ class AdminController extends Controller
         $locationModel = new Location();
         $locations     = $locationModel->findAllWithPhotoCounts();
 
-        $maxPhotos = LocationController::MAX_PHOTOS;
         foreach ($locations as &$location) {
-            $location['photo_count'] = (int) $location['photo_count'];
-            $location['missing']     = max(0, $maxPhotos - $location['photo_count']);
+            $maxPhotos                = LocationController::maxPhotosForBrand($location['brand_slug'] ?? '');
+            $location['photo_count']  = (int) $location['photo_count'];
+            $location['max_photos']   = $maxPhotos;
+            $location['missing']      = max(0, $maxPhotos - $location['photo_count']);
         }
         unset($location);
 
@@ -731,7 +733,6 @@ class AdminController extends Controller
             'total_count'  => count($locations),
             'missing_count'=> count(array_filter($locations, fn($l) => $l['missing'] > 0)),
             'only_missing' => $onlyMissing,
-            'max_photos'   => $maxPhotos,
             'csrf_token'   => $this->csrfToken(),
         ]);
     }
@@ -766,6 +767,7 @@ class AdminController extends Controller
         $this->render('admin/brands/locations', [
             'brand'       => $brand,
             'locations'   => $locations,
+            'max_photos'  => LocationController::maxPhotosForBrand($brand['slug']),
             'flash_ok'    => $this->getFlash('success'),
             'flash_error' => $this->getFlash('error'),
             'csrf_token'  => $this->csrfToken(),

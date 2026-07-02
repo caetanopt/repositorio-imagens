@@ -66,6 +66,7 @@ class BrandController extends Controller
         $this->render('brands/locations', [
             'brand'      => $brand,
             'locations'  => $locations,
+            'max_photos' => LocationController::maxPhotosForBrand($brand['slug']),
             'pageTitle'  => $brand['name'],
             'csrf_token' => $this->csrfToken(),
         ]);
