@@ -1,3 +1,4 @@
+<?php $isEdit = !empty($location); ?>
 <?php require_once __DIR__ . '/../../layout/header.php'; ?>
 
 <div class="brand-header">
@@ -17,7 +18,7 @@
                 <?php endif; ?>
             </div>
             <div>
-                <h1 class="brand-header-name">Nova Localização</h1>
+                <h1 class="brand-header-name"><?= $isEdit ? 'Editar Localização' : 'Nova Localização' ?></h1>
                 <p class="brand-header-meta"><?= e($brand['name']) ?></p>
             </div>
         </div>
@@ -37,14 +38,14 @@
                 Nome da localização <span class="required">*</span>
             </label>
             <input type="text" id="name" name="name" class="form-input"
-                   value="<?= e(old('name')) ?>" placeholder="Ex: Lisboa Norte"
+                   value="<?= e(old('name', $isEdit ? $location['name'] : '')) ?>" placeholder="Ex: Lisboa Norte"
                    required autofocus>
             <p class="form-hint-text">O slug é gerado automaticamente a partir do nome.</p>
         </div>
 
         <div class="form-actions">
             <a href="<?= url('/admin/marcas/' . $brand['id'] . '/localizacoes') ?>" class="btn btn-secondary">Cancelar</a>
-            <button type="submit" class="btn btn-primary">Criar localização</button>
+            <button type="submit" class="btn btn-primary"><?= $isEdit ? 'Guardar alterações' : 'Criar localização' ?></button>
         </div>
     </form>
 </div>

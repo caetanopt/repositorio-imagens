@@ -138,6 +138,8 @@ $router->get('/admin/localizacoes/auditoria', 'AdminController@locationAudit');
 $router->get('/admin/marcas/:id/localizacoes', 'AdminController@locationList');
 $router->get('/admin/marcas/:id/localizacoes/criar', 'AdminController@locationCreate');
 $router->post('/admin/marcas/:id/localizacoes/criar', 'AdminController@locationStore');
+$router->get('/admin/marcas/:id/localizacoes/:loc_id/editar', 'AdminController@locationEdit');
+$router->post('/admin/marcas/:id/localizacoes/:loc_id/editar', 'AdminController@locationUpdate');
 $router->post('/admin/marcas/:id/localizacoes/:loc_id/eliminar', 'AdminController@locationDelete');
 
 // Admin — Bulk Location Import

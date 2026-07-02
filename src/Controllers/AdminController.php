@@ -845,6 +845,92 @@ class AdminController extends Controller
         $this->redirect('/admin/marcas/' . $brandId . '/localizacoes');
     }
 
+    public function locationEdit(Request $request, array $params = []): void
+    {
+        $this->requirePermission('manage_brands');
+
+        $brandId    = (int) ($params['id'] ?? 0);
+        $locId      = (int) ($params['loc_id'] ?? 0);
+        $brandModel = new Brand();
+        $brand      = $brandModel->find($brandId);
+
+        if (!$brand) {
+            $this->redirect('/admin/marcas');
+        }
+
+        $locationModel = new Location();
+        $location      = $locationModel->find($locId);
+
+        if (!$location || (int) $location['brand_id'] !== $brandId) {
+            $this->setFlash('error', 'Localização não encontrada.');
+            $this->redirect('/admin/marcas/' . $brandId . '/localizacoes');
+        }
+
+        $brand['logo_url'] = $brandModel->logoUrl($brand['slug']);
+
+        $this->render('admin/brands/location_form', [
+            'brand'       => $brand,
+            'location'    => $location,
+            'action'      => '/admin/marcas/' . $brandId . '/localizacoes/' . $locId . '/editar',
+            'flash_error' => $this->getFlash('error'),
+            'csrf_token'  => $this->csrfToken(),
+        ]);
+    }
+
+    public function locationUpdate(Request $request, array $params = []): void
+    {
+        $this->requirePermission('manage_brands');
+        $this->requireCsrf();
+
+        $brandId    = (int) ($params['id'] ?? 0);
+        $locId      = (int) ($params['loc_id'] ?? 0);
+        $brandModel = new Brand();
+        $brand      = $brandModel->find($brandId);
+
+        if (!$brand) {
+            $this->redirect('/admin/marcas');
+        }
+
+        $locationModel = new Location();
+        $location      = $locationModel->find($locId);
+
+        if (!$location || (int) $location['brand_id'] !== $brandId) {
+            $this->setFlash('error', 'Localização não encontrada.');
+            $this->redirect('/admin/marcas/' . $brandId . '/localizacoes');
+        }
+
+        $name = trim($request->post('name', ''));
+        $slug = slugify($name);
+
+        if (empty($name)) {
+            $this->setFlash('error', 'O nome da localização é obrigatório.');
+            $this->redirect('/admin/marcas/' . $brandId . '/localizacoes/' . $locId . '/editar');
+        }
+
+        if ($locationModel->slugExistsForBrand($slug, $brandId, $locId)) {
+            $this->setFlash('error', 'Já existe outra localização com este nome para esta marca.');
+            $this->redirect('/admin/marcas/' . $brandId . '/localizacoes/' . $locId . '/editar');
+        }
+
+        try {
+            $locationModel->update($locId, ['name' => $name, 'slug' => $slug]);
+        } catch (\Throwable $e) {
+            error_log('locationUpdate failed: ' . $e->getMessage());
+            $this->setFlash('error', 'Não foi possível actualizar a localização. Tente um nome diferente.');
+            $this->redirect('/admin/marcas/' . $brandId . '/localizacoes/' . $locId . '/editar');
+        }
+
+        $me       = $this->auth->user();
+        $auditLog = new AuditLog();
+        $auditLog->log($me['id'], 'location_update', 'location', $locId, [
+            'name'  => $name,
+            'brand' => $brand['name'],
+        ]);
+
+        $this->setFlash('success', 'Localização actualizada com sucesso.');
+        $this->redirect('/admin/marcas/' . $brandId . '/localizacoes');
+    }
+
     public function locationDelete(Request $request, array $params = []): void
     {
         $this->requirePermission('manage_brands');

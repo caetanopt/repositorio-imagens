@@ -65,6 +65,9 @@
                         <a href="<?= url('/marcas/' . $brand['slug'] . '/' . $loc['slug']) ?>" class="btn btn-xs btn-secondary" target="_blank">
                             Ver fotos
                         </a>
+                        <a href="<?= url('/admin/marcas/' . $brand['id'] . '/localizacoes/' . $loc['id'] . '/editar') ?>" class="btn btn-xs btn-secondary">
+                            Editar
+                        </a>
                         <button class="btn btn-xs btn-danger"
                                 data-delete-location="<?= e($loc['id']) ?>"
                                 data-brand-id="<?= e($brand['id']) ?>"
