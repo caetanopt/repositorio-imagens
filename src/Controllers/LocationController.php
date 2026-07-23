@@ -20,15 +20,74 @@ class LocationController extends Controller
     public const MAX_PHOTOS = 4;
 
     /**
-     * Some brands use a different number of photo slots than the default
-     * (e.g. Caetano Retail Park only needs a single drone shot).
+     * Default photo slot names for a brand (some brands rename/reduce them).
+     * Returns an ordered list; the count is the brand's default photo limit.
+     */
+    public static function defaultSlotNamesForBrand(string $brandSlug): array
+    {
+        return match ($brandSlug) {
+            'caetano-parts' => [
+                'Call Center',
+                'Balcão de Peças',
+                'Armazém - Exterior',
+                'Armazém - Interior',
+            ],
+            'caetano-retail-park' => [
+                'Fotografia de Drone',
+            ],
+            default => [
+                'Fachada',
+                'Showroom',
+                'Receção',
+                'Oficina',
+            ],
+        };
+    }
+
+    /**
+     * Resolves the effective slot names for a location: the per-location
+     * override in locations.slot_names (a JSON array) if set, otherwise the
+     * brand default. Returns a 1-indexed map (slot number => name).
+     */
+    public static function slotNamesForLocation(string $brandSlug, ?array $location = null): array
+    {
+        $names = self::defaultSlotNamesForBrand($brandSlug);
+
+        if ($location !== null && !empty($location['slot_names'])) {
+            $override = is_array($location['slot_names'])
+                ? $location['slot_names']
+                : json_decode((string) $location['slot_names'], true);
+
+            if (is_array($override) && $override !== []) {
+                $names = array_values(array_filter(
+                    array_map(fn($n) => trim((string) $n), $override),
+                    fn($n) => $n !== ''
+                ));
+            }
+        }
+
+        // Re-index starting at slot 1
+        $map = [];
+        foreach (array_values($names) as $i => $name) {
+            $map[$i + 1] = $name;
+        }
+        return $map;
+    }
+
+    /**
+     * Number of photo slots for a location (respecting per-location overrides).
+     */
+    public static function maxPhotosForLocation(string $brandSlug, ?array $location = null): int
+    {
+        return count(self::slotNamesForLocation($brandSlug, $location));
+    }
+
+    /**
+     * Default photo limit for a brand (ignores per-location overrides).
      */
     public static function maxPhotosForBrand(string $brandSlug): int
     {
-        return match ($brandSlug) {
-            'caetano-retail-park' => 1,
-            default               => self::MAX_PHOTOS,
-        };
+        return count(self::defaultSlotNamesForBrand($brandSlug));
     }
 
     public function photos(Request $request, array $params = []): void
@@ -41,7 +100,8 @@ class LocationController extends Controller
         );
 
         $brand['logo_url'] = (new Brand())->logoUrl($brand['slug']);
-        $maxPhotos         = self::maxPhotosForBrand($brand['slug']);
+        $slotNames         = self::slotNamesForLocation($brand['slug'], $location);
+        $maxPhotos         = count($slotNames);
 
         $imageModel = new Image();
         $rawImages  = $imageModel->findByLocation($brand['id'], $location['id']);
@@ -86,6 +146,7 @@ class LocationController extends Controller
             'location'           => $location,
             'images'             => $images,
             'brandLocations'     => $brandLocations,
+            'slotNames'          => $slotNames,
             'max_photos'         => $maxPhotos,
             'slots_available'    => max(0, $maxPhotos - count($slotMap)),
             'pageTitle'          => $location['name'] . ' — ' . $brand['name'],
@@ -109,7 +170,7 @@ class LocationController extends Controller
             $params['loc_slug']   ?? ''
         );
 
-        $maxPhotos    = self::maxPhotosForBrand($brand['slug']);
+        $maxPhotos    = self::maxPhotosForLocation($brand['slug'], $location);
         $imageModel   = new Image();
         $currentCount = $imageModel->countByLocation($brand['id'], $location['id']);
 
@@ -257,7 +318,7 @@ class LocationController extends Controller
             $params['loc_slug']   ?? ''
         );
 
-        $maxPhotos    = self::maxPhotosForBrand($brand['slug']);
+        $maxPhotos    = self::maxPhotosForLocation($brand['slug'], $location);
         $imageModel   = new Image();
         $currentCount = $imageModel->countByLocation($brand['id'], $location['id']);
         if ($currentCount >= $maxPhotos) {
@@ -307,7 +368,7 @@ class LocationController extends Controller
         $width            = (int) $request->post('width', 0);
         $height           = (int) $request->post('height', 0);
         $mime             = $request->post('mime', 'image/jpeg');
-        $slot             = max(1, min(self::maxPhotosForBrand($brand['slug']), (int) $request->post('slot', 0)));
+        $slot             = max(1, min(self::maxPhotosForLocation($brand['slug'], $location), (int) $request->post('slot', 0)));
 
         // Validate the public URL belongs to the configured Supabase bucket
         $supabaseBase  = rtrim(env('SUPABASE_URL', ''), '/') . '/storage/v1/object/public/';

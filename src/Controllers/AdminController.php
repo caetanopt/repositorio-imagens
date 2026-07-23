@@ -739,7 +739,7 @@ class AdminController extends Controller
         $locations     = $locationModel->findAllWithPhotoCounts();
 
         foreach ($locations as &$location) {
-            $maxPhotos                = LocationController::maxPhotosForBrand($location['brand_slug'] ?? '');
+            $maxPhotos                = LocationController::maxPhotosForLocation($location['brand_slug'] ?? '', $location);
             $location['photo_count']  = (int) $location['photo_count'];
             $location['max_photos']   = $maxPhotos;
             $location['missing']      = max(0, $maxPhotos - $location['photo_count']);
@@ -898,11 +898,13 @@ class AdminController extends Controller
         $brand['logo_url'] = $brandModel->logoUrl($brand['slug']);
 
         $this->render('admin/brands/location_form', [
-            'brand'       => $brand,
-            'location'    => $location,
-            'action'      => '/admin/marcas/' . $brandId . '/localizacoes/' . $locId . '/editar',
-            'flash_error' => $this->getFlash('error'),
-            'csrf_token'  => $this->csrfToken(),
+            'brand'         => $brand,
+            'location'      => $location,
+            'slot_names'    => array_values(LocationController::slotNamesForLocation($brand['slug'], $location)),
+            'brand_default' => array_values(LocationController::defaultSlotNamesForBrand($brand['slug'])),
+            'action'        => '/admin/marcas/' . $brandId . '/localizacoes/' . $locId . '/editar',
+            'flash_error'   => $this->getFlash('error'),
+            'csrf_token'    => $this->csrfToken(),
         ]);
     }
 
@@ -941,8 +943,20 @@ class AdminController extends Controller
             $this->redirect('/admin/marcas/' . $brandId . '/localizacoes/' . $locId . '/editar');
         }
 
+        // Photo slot names: keep only non-empty ones, in order. If they match
+        // the brand default exactly, store NULL (fall back to the default).
+        $postedSlots = (array) $request->post('slot_names', []);
+        $slotNames   = array_values(array_filter(
+            array_map(fn($n) => trim((string) $n), $postedSlots),
+            fn($n) => $n !== ''
+        ));
+        $brandDefault = LocationController::defaultSlotNamesForBrand($brand['slug']);
+        $slotValue    = ($slotNames === [] || $slotNames === $brandDefault)
+            ? null
+            : json_encode($slotNames, JSON_UNESCAPED_UNICODE);
+
         try {
-            $locationModel->update($locId, ['name' => $name, 'slug' => $slug]);
+            $locationModel->update($locId, ['name' => $name, 'slug' => $slug, 'slot_names' => $slotValue]);
         } catch (\Throwable $e) {
             error_log('locationUpdate failed: ' . $e->getMessage());
             $this->setFlash('error', 'Não foi possível actualizar a localização. Tente um nome diferente.');

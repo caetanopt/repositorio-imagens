@@ -43,6 +43,26 @@
             <p class="form-hint-text">O slug é gerado automaticamente a partir do nome.</p>
         </div>
 
+        <?php if ($isEdit): ?>
+        <?php
+        $slotNames    = $slot_names    ?? [];
+        $brandDefault = $brand_default ?? [];
+        $maxSlots     = max(count($brandDefault), count($slotNames), 1);
+        ?>
+        <div class="form-group">
+            <label class="form-label">Categorias de foto</label>
+            <p class="form-hint-text" style="margin-top:0;">
+                Uma por campo. Deixa um campo vazio para remover essa categoria. Esta localização terá
+                tantas fotos quantas as categorias preenchidas.
+            </p>
+            <?php for ($i = 0; $i < $maxSlots; $i++): ?>
+            <input type="text" name="slot_names[]" class="form-input" style="margin-bottom:.5rem;"
+                   value="<?= e($slotNames[$i] ?? '') ?>"
+                   placeholder="<?= e($brandDefault[$i] ?? 'Categoria ' . ($i + 1)) ?>">
+            <?php endfor; ?>
+        </div>
+        <?php endif; ?>
+
         <div class="form-actions">
             <a href="<?= url('/admin/marcas/' . $brand['id'] . '/localizacoes') ?>" class="btn btn-secondary">Cancelar</a>
             <button type="submit" class="btn btn-primary"><?= $isEdit ? 'Guardar alterações' : 'Criar localização' ?></button>
