@@ -121,6 +121,7 @@ $router->post('/admin/utilizadores/criar', 'AdminController@userStore');
 $router->get('/admin/utilizadores/:id/editar', 'AdminController@userEdit');
 $router->post('/admin/utilizadores/:id/editar', 'AdminController@userUpdate');
 $router->post('/admin/utilizadores/:id/activar', 'AdminController@userToggle');
+$router->post('/admin/utilizadores/:id/desbloquear', 'AdminController@userUnlock');
 $router->post('/admin/utilizadores/:id/eliminar', 'AdminController@userDelete');
 
 // Admin — Brands

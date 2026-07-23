@@ -25,6 +25,11 @@ class AdminController extends Controller
         $userModel = new User();
         $users     = $userModel->findAll([], 'name ASC');
 
+        foreach ($users as &$user) {
+            $user['is_locked'] = $userModel->isLocked($user);
+        }
+        unset($user);
+
         $this->render('admin/users/index', [
             'users'       => $users,
             'flash_ok'    => $this->getFlash('success'),
@@ -306,6 +311,28 @@ class AdminController extends Controller
         ]);
 
         $this->json(['success' => true, 'active' => (bool) $fresh['active']]);
+    }
+
+    public function userUnlock(Request $request, array $params = []): void
+    {
+        $this->requirePermission('manage_users');
+        $this->requireCsrf();
+
+        $id        = (int) ($params['id'] ?? 0);
+        $userModel = new User();
+        $user      = $userModel->find($id);
+
+        if (!$user) {
+            $this->json(['success' => false, 'error' => 'Utilizador não encontrado.'], 404);
+        }
+
+        $userModel->resetLoginAttempts($id);
+
+        $me       = $this->auth->user();
+        $auditLog = new AuditLog();
+        $auditLog->log($me['id'], 'user_unlock', 'user', $id, ['email' => $user['email']]);
+
+        $this->json(['success' => true]);
     }
 
     public function userDelete(Request $request, array $params = []): void

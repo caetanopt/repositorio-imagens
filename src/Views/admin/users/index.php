@@ -70,12 +70,20 @@ require_once __DIR__ . '/../../layout/header.php';
                         <span class="status-dot <?= $user['active'] ? 'status-active' : 'status-inactive' ?>">
                             <?= $user['active'] ? 'Activo' : 'Inactivo' ?>
                         </span>
+                        <?php if ($user['is_locked']): ?>
+                        <span class="badge badge-admin badge-sm" data-locked-badge>Bloqueado</span>
+                        <?php endif; ?>
                     </td>
                     <td class="table-date"><?= e(date('d/m/Y', strtotime($user['created_at']))) ?></td>
                     <td class="table-actions">
                         <a href="<?= url('/admin/utilizadores/' . $user['id'] . '/editar') ?>" class="btn btn-xs btn-secondary">
                             Editar
                         </a>
+                        <?php if ($user['is_locked']): ?>
+                        <button class="btn btn-xs btn-secondary" data-unlock-user="<?= e($user['id']) ?>">
+                            Desbloquear
+                        </button>
+                        <?php endif; ?>
                         <?php if ((int)$user['id'] !== (int)$auth->user()['id']): ?>
                         <button class="btn btn-xs <?= $user['active'] ? 'btn-warning' : 'btn-success' ?>"
                                 data-toggle-user="<?= e($user['id']) ?>"
@@ -207,6 +215,34 @@ function bindDeleteUserButton(btn) {
 }
 
 document.querySelectorAll('[data-delete-user]').forEach(bindDeleteUserButton);
+
+document.querySelectorAll('[data-unlock-user]').forEach(btn => {
+    btn.addEventListener('click', async function () {
+        const userId = this.dataset.unlockUser;
+        const row    = this.closest('tr');
+
+        this.disabled = true;
+        try {
+            const res  = await fetch(`/admin/utilizadores/${userId}/desbloquear`, {
+                method : 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body   : `csrf_token=${encodeURIComponent(window.APP?.csrfToken ?? '')}`,
+            });
+            const data = await res.json();
+            if (!data.success) {
+                this.disabled = false;
+                window.toast?.error(data.error || 'Não foi possível desbloquear o utilizador.');
+                return;
+            }
+            row.querySelector('[data-locked-badge]')?.remove();
+            this.remove();
+            window.toast?.success('Utilizador desbloqueado.');
+        } catch (e) {
+            this.disabled = false;
+            window.toast?.error('Erro de comunicação.');
+        }
+    });
+});
 </script>
 
 <?php require_once __DIR__ . '/../../layout/footer.php'; ?>
