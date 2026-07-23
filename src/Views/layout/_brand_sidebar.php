@@ -5,10 +5,8 @@
  *   $brand           — brand row
  *   $brandLocations  — locations array, each with image_count
  *   $currentLocationId (optional) — highlights the active location
- *   $max_photos      (optional) — photo slot limit for this brand
  */
-$currentLocationId  = $currentLocationId ?? null;
-$sidebarMaxPhotos   = $max_photos ?? \App\Controllers\LocationController::MAX_PHOTOS;
+$currentLocationId = $currentLocationId ?? null;
 ?>
 <aside class="brand-sidebar">
     <div class="brand-sidebar-header">
@@ -25,15 +23,18 @@ $sidebarMaxPhotos   = $max_photos ?? \App\Controllers\LocationController::MAX_PH
     <?php else: ?>
     <nav class="brand-sidebar-nav">
         <?php foreach ($brandLocations as $loc): ?>
-        <?php $isActive = $currentLocationId !== null && (int) $loc['id'] === (int) $currentLocationId; ?>
+        <?php
+        $isActive = $currentLocationId !== null && (int) $loc['id'] === (int) $currentLocationId;
+        $locMax   = $loc['max_photos'] ?? \App\Controllers\LocationController::maxPhotosForLocation($brand['slug'], $loc);
+        ?>
         <a href="<?= url('/marcas/' . $brand['slug'] . '/' . $loc['slug']) ?>"
            class="brand-sidebar-item <?= $isActive ? 'brand-sidebar-item--active' : '' ?>">
             <span class="brand-sidebar-item-name"><?= e($loc['name']) ?></span>
             <div class="brand-sidebar-item-count">
-                <span class="brand-sidebar-item-num"><?= e($loc['image_count']) ?>/<?= e($sidebarMaxPhotos) ?></span>
+                <span class="brand-sidebar-item-num"><?= e($loc['image_count']) ?>/<?= e($locMax) ?></span>
                 <div class="location-count-bar">
-                    <div class="location-count-fill <?= $loc['image_count'] >= $sidebarMaxPhotos ? 'location-count-fill--full' : '' ?>"
-                         style="width:<?= e(($loc['image_count'] / $sidebarMaxPhotos) * 100) ?>%"></div>
+                    <div class="location-count-fill <?= $loc['image_count'] >= $locMax ? 'location-count-fill--full' : '' ?>"
+                         style="width:<?= e(($loc['image_count'] / $locMax) * 100) ?>%"></div>
                 </div>
             </div>
         </a>

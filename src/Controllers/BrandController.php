@@ -56,6 +56,7 @@ class BrandController extends Controller
         foreach ($locations as &$location) {
             $locId = (int) $location['id'];
             $location['image_count']    = $countMap[$locId] ?? 0;
+            $location['max_photos']     = LocationController::maxPhotosForLocation($brand['slug'], $location);
             $location['preview_images'] = array_map(
                 fn($img) => $this->enrichThumb($img, $brand['slug']),
                 $previewMap[$locId] ?? []
@@ -66,7 +67,6 @@ class BrandController extends Controller
         $this->render('brands/locations', [
             'brand'      => $brand,
             'locations'  => $locations,
-            'max_photos' => LocationController::maxPhotosForBrand($brand['slug']),
             'pageTitle'  => $brand['name'],
             'csrf_token' => $this->csrfToken(),
         ]);

@@ -134,6 +134,7 @@ class LocationController extends Controller
         $countMap       = $imageModel->countsByBrand($brand['id']);
         foreach ($brandLocations as &$loc) {
             $loc['image_count'] = $countMap[(int) $loc['id']] ?? 0;
+            $loc['max_photos']  = self::maxPhotosForLocation($brand['slug'], $loc);
         }
         unset($loc);
 

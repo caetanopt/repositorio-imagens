@@ -788,13 +788,13 @@ class AdminController extends Controller
         $countMap   = $imageModel->countsByBrand($brandId);
         foreach ($locations as &$location) {
             $location['image_count'] = $countMap[(int) $location['id']] ?? 0;
+            $location['max_photos']  = LocationController::maxPhotosForLocation($brand['slug'], $location);
         }
         unset($location);
 
         $this->render('admin/brands/locations', [
             'brand'       => $brand,
             'locations'   => $locations,
-            'max_photos'  => LocationController::maxPhotosForBrand($brand['slug']),
             'flash_ok'    => $this->getFlash('success'),
             'flash_error' => $this->getFlash('error'),
             'csrf_token'  => $this->csrfToken(),
