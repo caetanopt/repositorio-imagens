@@ -103,6 +103,19 @@ $filledCount   = count($images);
                     <span class="photo-slot-size"><?= e($img['filesize_human']) ?></span>
                 </div>
             </div>
+            <?php if ($canUploadBase): ?>
+            <button type="button"
+                    class="photo-slot-status photo-slot-status--<?= $img['is_outdated'] ? 'outdated' : 'updated' ?>"
+                    data-outdated-toggle="<?= e($img['id']) ?>"
+                    data-override="<?= e($img['override_state']) ?>"
+                    title="Clique para alterar manualmente (actualmente: <?= $img['override_state'] === 'auto' ? 'automático' : 'manual' ?>)">
+                <?= $img['is_outdated'] ? 'Desatualizada' : 'Atualizada' ?><?= $img['override_state'] !== 'auto' ? ' (manual)' : '' ?>
+            </button>
+            <?php else: ?>
+            <span class="photo-slot-status photo-slot-status--<?= $img['is_outdated'] ? 'outdated' : 'updated' ?>">
+                <?= $img['is_outdated'] ? 'Desatualizada' : 'Atualizada' ?>
+            </span>
+            <?php endif; ?>
         </div>
     </div>
     <?php elseif ($canUploadSlot): ?>
@@ -247,6 +260,9 @@ $filledCount   = count($images);
                         <span class="photo-slot-size">${esc(filesizeHuman)}</span>
                     </div>
                 </div>
+                ${canUpload
+                    ? `<button type="button" class="photo-slot-status photo-slot-status--outdated" data-outdated-toggle="${esc(imageId)}" data-override="auto" title="Clique para alterar manualmente (actualmente: automático)">Desatualizada</button>`
+                    : `<span class="photo-slot-status photo-slot-status--outdated">Desatualizada</span>`}
             </div>
         </div>`;
     }
@@ -280,6 +296,7 @@ $filledCount   = count($images);
             attachLightboxListeners(newSlot);
             attachDeleteListeners(newSlot);
             attachDateListeners(newSlot);
+            attachOutdatedStatusListeners(newSlot);
         }
         filledCount++;
         updateCounter();
@@ -396,6 +413,44 @@ $filledCount   = count($images);
                 } catch (err) {
                     this.value = prevVal;
                     showToast('Erro de comunicação.', 'error');
+                }
+            });
+        });
+    }
+
+    function attachOutdatedStatusListeners(container) {
+        container.querySelectorAll('[data-outdated-toggle]').forEach(btn => {
+            btn.addEventListener('click', async function () {
+                const id = this.dataset.outdatedToggle;
+                const nextByCurrent = { auto: 'updated', updated: 'outdated', outdated: 'auto' };
+                const next = nextByCurrent[this.dataset.override] || 'auto';
+                const prevOverride = this.dataset.override;
+                const prevClass    = this.className;
+                const prevText     = this.textContent;
+
+                this.disabled = true;
+                try {
+                    const res  = await fetch('/foto/' + id + '/estado', {
+                        method : 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body   : 'status=' + encodeURIComponent(next) + '&csrf_token=' + encodeURIComponent(csrfToken),
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        this.dataset.override = next;
+                        this.className = 'photo-slot-status ' + (data.outdated ? 'photo-slot-status--outdated' : 'photo-slot-status--updated');
+                        this.title = 'Clique para alterar manualmente (actualmente: ' + (next === 'auto' ? 'automático' : 'manual') + ')';
+                        this.textContent = (data.outdated ? 'Desatualizada' : 'Atualizada') + (next !== 'auto' ? ' (manual)' : '');
+                        showToast('Estado actualizado.', 'success');
+                    } else {
+                        showToast(data.error || 'Erro ao actualizar o estado.', 'error');
+                    }
+                } catch (err) {
+                    this.className = prevClass;
+                    this.textContent = prevText;
+                    showToast('Erro de comunicação.', 'error');
+                } finally {
+                    this.disabled = false;
                 }
             });
         });
@@ -592,6 +647,7 @@ $filledCount   = count($images);
         attachLightboxListeners(slot);
         attachDeleteListeners(slot);
         attachDateListeners(slot);
+        attachOutdatedStatusListeners(slot);
     });
     document.querySelectorAll('.photo-slot--empty:not(.photo-slot--readonly)').forEach(slot => {
         attachSlotListeners(slot);

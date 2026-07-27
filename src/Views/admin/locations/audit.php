@@ -3,23 +3,26 @@ $pageTitle = 'Auditoria de localizações';
 require_once __DIR__ . '/../../layout/header.php';
 ?>
 
+<?php
+$toggleUrl = fn($missing, $outdated) => url(
+    '/admin/localizacoes/auditoria?apenas_incompletas=' . ($missing ? '1' : '0')
+    . '&apenas_desatualizadas=' . ($outdated ? '1' : '0')
+);
+?>
 <div class="page-header">
     <div class="page-header-left">
         <h1 class="page-title">Auditoria de localizações</h1>
         <span class="total-count">
-            <?= e($missing_count) ?> de <?= e($total_count) ?> localizações com fotos em falta
+            <?= e($missing_count) ?> em falta · <?= e($outdated_count) ?> com fotos desatualizadas · <?= e($total_count) ?> no total
         </span>
     </div>
     <div class="page-header-right">
-        <?php if ($only_missing): ?>
-        <a href="<?= url('/admin/localizacoes/auditoria?apenas_incompletas=0') ?>" class="btn btn-secondary">
-            Mostrar todas
+        <a href="<?= e($toggleUrl(!$only_missing, $only_outdated)) ?>" class="btn btn-secondary">
+            <?= $only_missing ? 'Mostrar todas (incompletas)' : 'Mostrar só incompletas' ?>
         </a>
-        <?php else: ?>
-        <a href="<?= url('/admin/localizacoes/auditoria?apenas_incompletas=1') ?>" class="btn btn-secondary">
-            Mostrar só incompletas
+        <a href="<?= e($toggleUrl($only_missing, !$only_outdated)) ?>" class="btn btn-secondary">
+            <?= $only_outdated ? 'Mostrar todas (desatualizadas)' : 'Mostrar só desatualizadas' ?>
         </a>
-        <?php endif; ?>
     </div>
 </div>
 
@@ -46,14 +49,15 @@ require_once __DIR__ . '/../../layout/header.php';
                     <th>Localização</th>
                     <th>Fotos</th>
                     <th>Em falta</th>
+                    <th>Estado das fotos</th>
                     <th class="table-actions-col">Acções</th>
                 </tr>
             </thead>
             <tbody>
                 <?php if (empty($locations)): ?>
                 <tr>
-                    <td colspan="5" class="table-empty">
-                        <?= $only_missing ? 'Todas as localizações têm o número completo de fotos.' : 'Nenhuma localização encontrada.' ?>
+                    <td colspan="6" class="table-empty">
+                        Nenhuma localização corresponde aos filtros seleccionados.
                     </td>
                 </tr>
                 <?php else: ?>
@@ -74,6 +78,13 @@ require_once __DIR__ . '/../../layout/header.php';
                         <span class="badge badge-viewer">Completa</span>
                         <?php endif; ?>
                     </td>
+                    <td>
+                        <?php if ($loc['outdated'] > 0): ?>
+                        <span class="badge badge-admin"><?= e($loc['outdated']) ?> desatualizada<?= $loc['outdated'] > 1 ? 's' : '' ?></span>
+                        <?php else: ?>
+                        <span class="badge badge-viewer">Atualizada</span>
+                        <?php endif; ?>
+                    </td>
                     <td class="table-actions">
                         <a href="<?= url('/marcas/' . $loc['brand_slug'] . '/' . $loc['slug']) ?>"
                            class="btn btn-xs btn-secondary" target="_blank">
@@ -83,7 +94,7 @@ require_once __DIR__ . '/../../layout/header.php';
                 </tr>
                 <?php endforeach; ?>
                 <tr id="noMatchesRow" class="table-empty-row" hidden>
-                    <td colspan="5" class="table-empty">Nenhuma localização corresponde aos filtros.</td>
+                    <td colspan="6" class="table-empty">Nenhuma localização corresponde aos filtros.</td>
                 </tr>
                 <?php endif; ?>
             </tbody>

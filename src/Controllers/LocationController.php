@@ -114,7 +114,9 @@ class LocationController extends Controller
             $img['optimized_url'] = StorageResolver::resolveUrl($img['filepath']          ?? '', $base);
             $img['original_url']  = StorageResolver::resolveUrl($img['original_filepath'] ?? '', $base);
             $img['download_url']  = '/download/' . $img['id'];
-            $img['filesize_human']= formatBytes((int) ($img['filesize'] ?? 0));
+            $img['filesize_human']  = formatBytes((int) ($img['filesize'] ?? 0));
+            $img['is_outdated']     = Image::isOutdated($img);
+            $img['override_state']  = Image::overrideState($img);
 
             $s = (int) ($img['slot'] ?? 0);
             if ($s >= 1 && $s <= $maxPhotos && !isset($slotMap[$s])) {
@@ -507,6 +509,49 @@ class LocationController extends Controller
             'success'           => true,
             'captured_at'       => $date,
             'captured_at_human' => $parsed->format('d/m/Y'),
+        ]);
+    }
+
+    public function updateOutdatedStatus(Request $request, array $params = []): void
+    {
+        $this->requirePermission('upload');
+        $this->requireCsrf();
+
+        $id         = (int) ($params['id'] ?? 0);
+        $imageModel = new Image();
+        $image      = $imageModel->findWithRelations($id);
+
+        if (!$image || $image['deleted_at'] !== null) {
+            $this->json(['success' => false, 'error' => 'Imagem não encontrada.'], 404);
+        }
+
+        $status = $request->post('status', '');
+        // Integers (not PHP bool) — emulated prepared statements stringify
+        // bool false as an empty string, which Postgres rejects as invalid
+        // boolean input. 0/1 round-trip correctly either way.
+        $override = match ($status) {
+            'auto'     => null,
+            'updated'  => 0,
+            'outdated' => 1,
+            default    => 'invalid',
+        };
+
+        if ($override === 'invalid') {
+            $this->json(['success' => false, 'error' => 'Estado inválido.'], 422);
+        }
+
+        $imageModel->update($id, ['outdated_override' => $override]);
+
+        $auditLog = new AuditLog();
+        $auditLog->log($this->auth->user()['id'], 'image_outdated_status_update', 'image', $id, [
+            'status' => $status,
+        ]);
+
+        $fresh = $imageModel->find($id);
+        $this->json([
+            'success'   => true,
+            'status'    => $status,
+            'outdated'  => Image::isOutdated($fresh),
         ]);
     }
 

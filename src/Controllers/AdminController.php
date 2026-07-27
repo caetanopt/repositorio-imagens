@@ -735,32 +735,43 @@ class AdminController extends Controller
     {
         $this->requirePermission('view_audit');
 
-        $locationModel = new Location();
-        $locations     = $locationModel->findAllWithPhotoCounts();
+        $locationModel  = new Location();
+        $locations      = $locationModel->findAllWithPhotoCounts();
+        $outdatedByLoc  = (new Image())->countOutdatedByLocation();
 
         foreach ($locations as &$location) {
             $maxPhotos                = LocationController::maxPhotosForLocation($location['brand_slug'] ?? '', $location);
             $location['photo_count']  = (int) $location['photo_count'];
             $location['max_photos']   = $maxPhotos;
             $location['missing']      = max(0, $maxPhotos - $location['photo_count']);
+            $location['outdated']     = $outdatedByLoc[(int) $location['id']] ?? 0;
         }
         unset($location);
 
-        $onlyMissing = $request->get('apenas_incompletas', '1') === '1';
-        $filtered    = $onlyMissing
-            ? array_values(array_filter($locations, fn($l) => $l['missing'] > 0))
-            : $locations;
+        $onlyMissing  = $request->get('apenas_incompletas', '1') === '1';
+        $onlyOutdated = $request->get('apenas_desatualizadas', '0') === '1';
+
+        $filtered = $locations;
+        if ($onlyMissing) {
+            $filtered = array_filter($filtered, fn($l) => $l['missing'] > 0);
+        }
+        if ($onlyOutdated) {
+            $filtered = array_filter($filtered, fn($l) => $l['outdated'] > 0);
+        }
+        $filtered = array_values($filtered);
 
         $brandNames = array_values(array_unique(array_column($locations, 'brand_name')));
         sort($brandNames, SORT_NATURAL | SORT_FLAG_CASE);
 
         $this->render('admin/locations/audit', [
-            'locations'    => $filtered,
-            'brands'       => $brandNames,
-            'total_count'  => count($locations),
-            'missing_count'=> count(array_filter($locations, fn($l) => $l['missing'] > 0)),
-            'only_missing' => $onlyMissing,
-            'csrf_token'   => $this->csrfToken(),
+            'locations'      => $filtered,
+            'brands'         => $brandNames,
+            'total_count'    => count($locations),
+            'missing_count'  => count(array_filter($locations, fn($l) => $l['missing'] > 0)),
+            'outdated_count' => count(array_filter($locations, fn($l) => $l['outdated'] > 0)),
+            'only_missing'   => $onlyMissing,
+            'only_outdated'  => $onlyOutdated,
+            'csrf_token'     => $this->csrfToken(),
         ]);
     }
 

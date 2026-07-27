@@ -11,6 +11,45 @@ class Image extends Model
     protected string $table  = 'images';
     protected bool $softDeletes = true;
 
+    /**
+     * Photos captured before this date are considered outdated by default,
+     * unless the image has a manual outdated_override.
+     */
+    public const OUTDATED_CUTOFF = '2026-01-01';
+
+    /**
+     * Effective "atualizada/desatualizada" status for a photo: the manual
+     * override wins if set, otherwise it's derived from captured_at.
+     * A missing captured_at is treated as outdated (unconfirmed date).
+     */
+    /**
+     * The raw manual override state: 'auto' (no override), 'updated' or
+     * 'outdated'. Normalises PDO_PGSQL's 't'/'f' wire strings for booleans.
+     */
+    public static function overrideState(array $image): string
+    {
+        $override = $image['outdated_override'] ?? null;
+        if ($override === null) {
+            return 'auto';
+        }
+        $isTrue = is_string($override) ? in_array($override, ['t', 'true', '1'], true) : (bool) $override;
+        return $isTrue ? 'outdated' : 'updated';
+    }
+
+    public static function isOutdated(array $image): bool
+    {
+        if (self::overrideState($image) !== 'auto') {
+            return self::overrideState($image) === 'outdated';
+        }
+
+        $capturedAt = $image['captured_at'] ?? null;
+        if (empty($capturedAt)) {
+            return true;
+        }
+
+        return strtotime($capturedAt) < strtotime(self::OUTDATED_CUTOFF);
+    }
+
     public function findWithRelations(int $id): ?array
     {
         $stmt = $this->db()->query(
@@ -259,6 +298,32 @@ class Image extends Model
              WHERE brand_id = ? AND deleted_at IS NULL
              GROUP BY location_id',
             [$brandId]
+        )->fetchAll();
+
+        $map = [];
+        foreach ($rows as $row) {
+            $map[(int) $row['location_id']] = (int) $row['cnt'];
+        }
+        return $map;
+    }
+
+    /**
+     * Number of active (non-deleted) outdated photos per location, across
+     * all brands. Mirrors Image::isOutdated() in SQL: a manual override
+     * wins, otherwise a missing/pre-cutoff captured_at counts as outdated.
+     */
+    public function countOutdatedByLocation(): array
+    {
+        $rows = $this->db()->query(
+            'SELECT location_id, COUNT(*) AS cnt
+             FROM "images"
+             WHERE deleted_at IS NULL
+               AND (
+                   outdated_override IS TRUE
+                   OR (outdated_override IS NULL AND (captured_at IS NULL OR captured_at < ?))
+               )
+             GROUP BY location_id',
+            [self::OUTDATED_CUTOFF]
         )->fetchAll();
 
         $map = [];

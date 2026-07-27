@@ -1920,6 +1920,27 @@ body.lightbox-open { overflow: hidden; }
     color: var(--border-dark);
 }
 
+.photo-slot-status {
+    display: block;
+    width: 100%;
+    text-align: center;
+    font-size: .7rem;
+    font-weight: 600;
+    letter-spacing: .01em;
+    padding: .3rem .5rem;
+    border: none;
+    border-top: 1px solid var(--border);
+    cursor: pointer;
+    transition: filter var(--transition);
+}
+
+span.photo-slot-status { cursor: default; }
+
+.photo-slot-status--updated  { background: #ecfdf5; color: #047857; }
+.photo-slot-status--outdated { background: #fef2f2; color: #b91c1c; }
+
+button.photo-slot-status:hover { filter: brightness(0.96); }
+
 .photo-slot--empty {
     aspect-ratio: 4/3;
     border: 2px dashed var(--border-dark);
