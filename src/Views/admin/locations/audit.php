@@ -18,10 +18,10 @@ $toggleUrl = fn($missing, $outdated) => url(
     </div>
     <div class="page-header-right">
         <a href="<?= e($toggleUrl(!$only_missing, $only_outdated)) ?>" class="btn btn-secondary">
-            <?= $only_missing ? 'Mostrar todas (incompletas)' : 'Mostrar só incompletas' ?>
+            <?= $only_missing ? 'Mostrar também localizações sem fotos em falta' : 'Mostrar só localizações com fotos em falta' ?>
         </a>
         <a href="<?= e($toggleUrl($only_missing, !$only_outdated)) ?>" class="btn btn-secondary">
-            <?= $only_outdated ? 'Mostrar todas (desatualizadas)' : 'Mostrar só desatualizadas' ?>
+            <?= $only_outdated ? 'Mostrar também localizações sem fotos desatualizadas' : 'Mostrar só localizações com fotos desatualizadas' ?>
         </a>
     </div>
 </div>
