@@ -4,10 +4,7 @@ require_once __DIR__ . '/../../layout/header.php';
 ?>
 
 <?php
-$toggleUrl = fn($missing, $outdated) => url(
-    '/admin/localizacoes/auditoria?apenas_incompletas=' . ($missing ? '1' : '0')
-    . '&apenas_desatualizadas=' . ($outdated ? '1' : '0')
-);
+$filterUrl = fn($f) => url('/admin/localizacoes/auditoria?filtro=' . $f);
 ?>
 <div class="page-header">
     <div class="page-header-left">
@@ -17,11 +14,17 @@ $toggleUrl = fn($missing, $outdated) => url(
         </span>
     </div>
     <div class="page-header-right">
-        <a href="<?= e($toggleUrl(!$only_missing, $only_outdated)) ?>" class="btn btn-secondary">
-            <?= $only_missing ? 'Mostrar também localizações sem fotos em falta' : 'Mostrar só localizações com fotos em falta' ?>
+        <a href="<?= e($filterUrl('em_falta')) ?>"
+           class="btn <?= $filter === 'em_falta' ? 'btn-primary' : 'btn-secondary' ?>">
+            Mostrar localizações com fotos em falta
         </a>
-        <a href="<?= e($toggleUrl($only_missing, !$only_outdated)) ?>" class="btn btn-secondary">
-            <?= $only_outdated ? 'Mostrar também localizações sem fotos desatualizadas' : 'Mostrar só localizações com fotos desatualizadas' ?>
+        <a href="<?= e($filterUrl('desatualizadas')) ?>"
+           class="btn <?= $filter === 'desatualizadas' ? 'btn-primary' : 'btn-secondary' ?>">
+            Mostrar localizações com fotos desatualizadas
+        </a>
+        <a href="<?= e($filterUrl('todas')) ?>"
+           class="btn <?= $filter === 'todas' ? 'btn-primary' : 'btn-secondary' ?>">
+            Mostrar todas as localizações
         </a>
     </div>
 </div>

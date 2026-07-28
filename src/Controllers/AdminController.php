@@ -748,16 +748,16 @@ class AdminController extends Controller
         }
         unset($location);
 
-        $onlyMissing  = $request->get('apenas_incompletas', '1') === '1';
-        $onlyOutdated = $request->get('apenas_desatualizadas', '0') === '1';
+        $filter = $request->get('filtro', 'em_falta');
+        if (!in_array($filter, ['em_falta', 'desatualizadas', 'todas'], true)) {
+            $filter = 'em_falta';
+        }
 
-        $filtered = $locations;
-        if ($onlyMissing) {
-            $filtered = array_filter($filtered, fn($l) => $l['missing'] > 0);
-        }
-        if ($onlyOutdated) {
-            $filtered = array_filter($filtered, fn($l) => $l['outdated'] > 0);
-        }
+        $filtered = match ($filter) {
+            'em_falta'       => array_filter($locations, fn($l) => $l['missing'] > 0),
+            'desatualizadas' => array_filter($locations, fn($l) => $l['outdated'] > 0),
+            default          => $locations,
+        };
         $filtered = array_values($filtered);
 
         $brandNames = array_values(array_unique(array_column($locations, 'brand_name')));
@@ -769,8 +769,7 @@ class AdminController extends Controller
             'total_count'    => count($locations),
             'missing_count'  => count(array_filter($locations, fn($l) => $l['missing'] > 0)),
             'outdated_count' => count(array_filter($locations, fn($l) => $l['outdated'] > 0)),
-            'only_missing'   => $onlyMissing,
-            'only_outdated'  => $onlyOutdated,
+            'filter'         => $filter,
             'csrf_token'     => $this->csrfToken(),
         ]);
     }
