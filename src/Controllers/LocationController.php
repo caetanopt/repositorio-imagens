@@ -489,8 +489,17 @@ class LocationController extends Controller
         $date = trim($request->post('captured_at', ''));
 
         if ($date === '') {
-            $imageModel->update($id, ['captured_at' => null]);
-            $this->json(['success' => true, 'captured_at' => null, 'captured_at_human' => '']);
+            // Changing the date always resets any manual override — the
+            // outdated status must follow the new date automatically.
+            $imageModel->update($id, ['captured_at' => null, 'outdated_override' => null]);
+            $fresh = $imageModel->find($id);
+            $this->json([
+                'success'           => true,
+                'captured_at'       => null,
+                'captured_at_human' => '',
+                'outdated'          => Image::isOutdated($fresh),
+                'override_state'    => 'auto',
+            ]);
         }
 
         $parsed = \DateTime::createFromFormat('Y-m-d', $date);
@@ -498,17 +507,20 @@ class LocationController extends Controller
             $this->json(['success' => false, 'error' => 'Data inválida.'], 422);
         }
 
-        $imageModel->update($id, ['captured_at' => $date]);
+        $imageModel->update($id, ['captured_at' => $date, 'outdated_override' => null]);
 
         $auditLog = new AuditLog();
         $auditLog->log($this->auth->user()['id'], 'image_captured_date_update', 'image', $id, [
             'captured_at' => $date,
         ]);
 
+        $fresh = $imageModel->find($id);
         $this->json([
             'success'           => true,
             'captured_at'       => $date,
             'captured_at_human' => $parsed->format('d/m/Y'),
+            'outdated'          => Image::isOutdated($fresh),
+            'override_state'    => 'auto',
         ]);
     }
 

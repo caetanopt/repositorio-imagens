@@ -405,6 +405,17 @@ $filledCount   = count($images);
                     const data = await res.json();
                     if (data.success) {
                         if (dateEl) dateEl.textContent = data.captured_at_human || 'Sem data';
+
+                        // Changing the date resets the status to automatic —
+                        // reflect that in the status badge too.
+                        const statusEl = document.querySelector(`[data-outdated-toggle="${id}"]`);
+                        if (statusEl) {
+                            statusEl.dataset.override = 'auto';
+                            statusEl.className = 'photo-slot-status ' + (data.outdated ? 'photo-slot-status--outdated' : 'photo-slot-status--updated');
+                            statusEl.title = 'Clique para alterar manualmente (actualmente: automático)';
+                            statusEl.textContent = data.outdated ? 'Desatualizada' : 'Atualizada';
+                        }
+
                         showToast('Data actualizada.', 'success');
                     } else {
                         this.value = prevVal;
