@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Models\LoginToken;
 use App\Models\User;
 
 class AuthService
@@ -24,40 +25,74 @@ class AuthService
         'view_audit'         => ['admin', 'editor'],
     ];
 
+    private const TOKEN_TTL_MINUTES       = 15;
+    private const MAX_REQUESTS_PER_WINDOW = 3;
+    private const REQUEST_WINDOW_MINUTES  = 15;
+
     private User $userModel;
+    private LoginToken $tokenModel;
 
     public function __construct()
     {
-        $this->userModel = new User();
+        $this->userModel  = new User();
+        $this->tokenModel = new LoginToken();
     }
 
-    public function login(string $email, string $password, bool $remember = false): bool
+    /**
+     * Requests a login link for the given email, if it belongs to an active,
+     * unlocked user. Always returns silently to the caller — whether the
+     * email actually matched an account is never revealed.
+     */
+    public function requestLoginLink(string $email, bool $remember, string $ip): void
     {
         $user = $this->userModel->findByEmail($email);
+        if (!$user || !$user['active'] || $this->userModel->isLocked($user)) {
+            return;
+        }
 
+        if ($this->tokenModel->countRecentForUser((int) $user['id'], self::REQUEST_WINDOW_MINUTES) >= self::MAX_REQUESTS_PER_WINDOW) {
+            return;
+        }
+
+        $token     = bin2hex(random_bytes(32));
+        $tokenHash = hash('sha256', $token);
+        $this->tokenModel->createForUser((int) $user['id'], $tokenHash, self::TOKEN_TTL_MINUTES, $remember, $ip);
+
+        $link = rtrim(env('APP_URL', ''), '/') . '/login/verificar?token=' . $token;
+
+        $appName = env('APP_NAME', 'Repositório Digital');
+        $subject = 'O seu link de acesso — ' . $appName;
+        $html = '<p>Olá ' . e($user['name']) . ',</p>'
+            . '<p>Recebemos um pedido de acesso ao ' . e($appName) . '. '
+            . 'Clique no link abaixo para entrar (válido por ' . self::TOKEN_TTL_MINUTES . ' minutos, uso único):</p>'
+            . '<p><a href="' . e($link) . '">' . e($link) . '</a></p>'
+            . '<p>Se não pediu este acesso, pode ignorar este email.</p>';
+        $text = "Olá {$user['name']},\n\n"
+            . "Recebemos um pedido de acesso. Use o link abaixo para entrar (válido por " . self::TOKEN_TTL_MINUTES . " minutos, uso único):\n\n"
+            . "{$link}\n\n"
+            . "Se não pediu este acesso, pode ignorar este email.";
+
+        (new MailerService())->send($user['email'], $subject, $html, $text);
+    }
+
+    /**
+     * Verifies a login token and, if valid, logs the user in.
+     */
+    public function verifyLoginToken(string $token): ?array
+    {
+        $tokenHash = hash('sha256', $token);
+        $row = $this->tokenModel->findValidByHash($tokenHash);
+        if (!$row) {
+            return null;
+        }
+
+        $user = $this->userModel->find((int) $row['user_id']);
         if (!$user || !$user['active']) {
-            return false;
+            return null;
         }
 
-        // Check account lock
-        if ($this->userModel->isLocked($user)) {
-            return false;
-        }
-
-        if (!$this->userModel->verifyPassword($password, $user['password_hash'])) {
-            $this->userModel->incrementLoginAttempts($user['id']);
-
-            // Lock after 5 failed attempts
-            $fresh = $this->userModel->find($user['id']);
-            if ($fresh && $fresh['login_attempts'] >= 5) {
-                $this->userModel->lockAccount($user['id'], 15);
-            }
-
-            return false;
-        }
-
-        // Successful login
-        $this->userModel->resetLoginAttempts($user['id']);
+        $this->tokenModel->markUsed((int) $row['id']);
+        $this->userModel->resetLoginAttempts((int) $user['id']);
 
         // Regenerate session ID to prevent fixation
         session_regenerate_id(true);
@@ -70,13 +105,13 @@ class AuthService
             'photo_path' => $user['photo_path'] ?? null,
         ];
 
-        if ($remember) {
-            $token = bin2hex(random_bytes(32));
-            $this->userModel->setRememberToken($user['id'], $token);
+        if (!empty($row['remember'])) {
+            $rememberToken = bin2hex(random_bytes(32));
+            $this->userModel->setRememberToken((int) $user['id'], $rememberToken);
             $days = (int) env('REMEMBER_ME_DAYS', 30);
             setcookie(
                 'remember_token',
-                $token,
+                $rememberToken,
                 time() + ($days * 86400),
                 '/',
                 '',
@@ -85,7 +120,7 @@ class AuthService
             );
         }
 
-        return true;
+        return $user;
     }
 
     public function logout(): void

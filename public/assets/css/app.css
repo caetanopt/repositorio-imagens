@@ -1627,7 +1627,8 @@ body.lightbox-open { overflow: hidden; }
     box-shadow: var(--shadow-lg);
 }
 
-.login-title { font-size: 1.25rem; font-weight: 700; margin-bottom: 1.5rem; }
+.login-title { font-size: 1.25rem; font-weight: 700; margin-bottom: .5rem; }
+.login-subtitle { font-size: .875rem; color: var(--text-muted); margin-bottom: 1.5rem; }
 
 .login-footer { margin-top: 1.5rem; font-size: .8rem; color: rgba(255,255,255,.4); text-align: center; }
 

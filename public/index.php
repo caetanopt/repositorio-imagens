@@ -81,7 +81,8 @@ $router = new \App\Core\Router();
 
 // Auth routes
 $router->get('/login', 'AuthController@showLogin');
-$router->post('/login', 'AuthController@doLogin');
+$router->post('/login', 'AuthController@requestLink');
+$router->get('/login/verificar', 'AuthController@verify');
 $router->get('/logout', 'AuthController@doLogout');
 
 // Profile (self-service)

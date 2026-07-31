@@ -90,31 +90,6 @@ require_once __DIR__ . '/../layout/header.php';
             </div>
         </div>
 
-        <div class="user-menu-divider" style="margin: 1.5rem 0;"></div>
-
-        <h3 style="font-size: 1rem; margin-bottom: 1rem;">Alterar palavra-passe</h3>
-        <p class="form-hint-text" style="margin-top: -.5rem; margin-bottom: 1rem;">Deixa em branco se não quiseres alterar a palavra-passe.</p>
-
-        <div class="form-grid">
-            <div class="form-group">
-                <label class="form-label" for="current_password">Palavra-passe actual</label>
-                <input type="password" id="current_password" name="current_password" class="form-input"
-                       autocomplete="current-password" placeholder="••••••••">
-            </div>
-
-            <div class="form-group">
-                <label class="form-label" for="new_password">Nova palavra-passe</label>
-                <input type="password" id="new_password" name="new_password" class="form-input"
-                       autocomplete="new-password" minlength="8" placeholder="Mínimo 8 caracteres">
-            </div>
-
-            <div class="form-group">
-                <label class="form-label" for="new_password_confirm">Confirmar nova palavra-passe</label>
-                <input type="password" id="new_password_confirm" name="new_password_confirm" class="form-input"
-                       autocomplete="new-password" minlength="8" placeholder="Repetir a nova palavra-passe">
-            </div>
-        </div>
-
         <div class="form-actions">
             <a href="<?= url('/') ?>" class="btn btn-secondary">Cancelar</a>
             <button type="submit" class="btn btn-primary">Guardar alterações</button>

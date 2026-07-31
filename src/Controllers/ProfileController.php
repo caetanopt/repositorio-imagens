@@ -71,20 +71,6 @@ class ProfileController extends Controller
             }
         }
 
-        $newPassword = trim($request->post('new_password', ''));
-        if ($newPassword !== '') {
-            $currentPassword = $request->post('current_password', '');
-            if (empty($currentPassword) || !$userModel->verifyPassword($currentPassword, $user['password_hash'])) {
-                $errors[] = 'Palavra-passe actual incorrecta.';
-            } elseif (strlen($newPassword) < 8) {
-                $errors[] = 'A nova palavra-passe deve ter pelo menos 8 caracteres.';
-            } elseif ($newPassword !== $request->post('new_password_confirm', '')) {
-                $errors[] = 'A confirmação da nova palavra-passe não coincide.';
-            } else {
-                $updateData['password_hash'] = password_hash($newPassword, PASSWORD_BCRYPT);
-            }
-        }
-
         if (!empty($errors)) {
             $this->setFlash('error', implode(' ', $errors));
             $this->redirect('/perfil');

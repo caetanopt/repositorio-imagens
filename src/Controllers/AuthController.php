@@ -19,42 +19,64 @@ class AuthController extends Controller
 
         $this->render('auth/login', [
             'error'      => $this->getFlash('error'),
+            'success'    => $this->getFlash('success'),
             'csrf_token' => $this->csrfToken(),
         ]);
     }
 
-    public function doLogin(Request $request, array $params = []): void
+    /**
+     * Requests a login link for the given email. Always shows the same
+     * generic message, whether or not the email matches an active account —
+     * this avoids leaking which emails are registered.
+     */
+    public function requestLink(Request $request, array $params = []): void
     {
-        // CSRF check
         $this->requireCsrf();
 
         $email    = trim($request->post('email', ''));
-        $password = $request->post('password', '');
         $remember = (bool) $request->post('remember_me', false);
 
-        if (empty($email) || empty($password)) {
-            $this->setFlash('error', 'Email e palavra-passe são obrigatórios.');
+        if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $this->setFlash('error', 'Introduza um email válido.');
             $this->setOld(['email' => $email]);
             $this->redirect('/login');
         }
 
-        $success = $this->auth->login($email, $password, $remember);
+        $this->auth->requestLoginLink($email, $remember, $request->ip());
 
-        if (!$success) {
+        $auditLog = new AuditLog();
+        $auditLog->log(null, 'login_link_requested', 'auth', null, [
+            'email' => $email,
+            'ip'    => $request->ip(),
+        ]);
+
+        $this->setFlash('success', 'Se o email pertencer a uma conta activa, foi enviado um link de acesso. Verifique a sua caixa de entrada.');
+        $this->redirect('/login');
+    }
+
+    public function verify(Request $request, array $params = []): void
+    {
+        $token = trim((string) $request->get('token', ''));
+
+        if (empty($token)) {
+            $this->setFlash('error', 'Link de acesso inválido.');
+            $this->redirect('/login');
+        }
+
+        $user = $this->auth->verifyLoginToken($token);
+
+        if (!$user) {
             $auditLog = new AuditLog();
-            $auditLog->log(null, 'login_failed', 'auth', null, [
-                'email' => $email,
-                'ip'    => $request->ip(),
+            $auditLog->log(null, 'login_link_invalid', 'auth', null, [
+                'ip' => $request->ip(),
             ]);
 
-            $this->setFlash('error', 'Email ou palavra-passe incorrectos. A conta pode estar bloqueada após múltiplas tentativas falhadas.');
-            $this->setOld(['email' => $email]);
+            $this->setFlash('error', 'O link de acesso é inválido ou já expirou. Peça um novo link.');
             $this->redirect('/login');
         }
 
-        $user     = $this->auth->user();
         $auditLog = new AuditLog();
-        $auditLog->log($user['id'], 'login', 'auth', $user['id'], [
+        $auditLog->log((int) $user['id'], 'login', 'auth', (int) $user['id'], [
             'ip' => $request->ip(),
         ]);
 

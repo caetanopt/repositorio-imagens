@@ -55,18 +55,11 @@ class AdminController extends Controller
         $this->requirePermission('manage_users');
         $this->requireCsrf();
 
-        $data     = $this->validateUserInput($request);
-        $errors   = $data['errors'];
-        $name     = $data['name'];
-        $email    = $data['email'];
-        $password = $data['password'];
-        $role     = $data['role'];
-
-        if (empty($password)) {
-            $errors[] = 'A palavra-passe é obrigatória para novos utilizadores.';
-        } elseif (strlen($password) < 8) {
-            $errors[] = 'A palavra-passe deve ter pelo menos 8 caracteres.';
-        }
+        $data   = $this->validateUserInput($request);
+        $errors = $data['errors'];
+        $name   = $data['name'];
+        $email  = $data['email'];
+        $role   = $data['role'];
 
         if (!empty($errors)) {
             $this->setFlash('error', implode(' ', $errors));
@@ -84,11 +77,10 @@ class AdminController extends Controller
         }
 
         $id = $userModel->create([
-            'name'          => $name,
-            'email'         => $email,
-            'password_hash' => password_hash($password, PASSWORD_BCRYPT),
-            'role'          => $role,
-            'active'        => 1,
+            'name'   => $name,
+            'email'  => $email,
+            'role'   => $role,
+            'active' => 1,
         ]);
 
         $photoError = $this->processUserPhotoUpload($request, $id, $userModel);
@@ -158,15 +150,6 @@ class AdminController extends Controller
         }
 
         $updateData = ['name' => $name, 'email' => $email, 'role' => $role];
-
-        $password = trim($request->post('password', ''));
-        if (!empty($password)) {
-            if (strlen($password) < 8) {
-                $this->setFlash('error', 'A palavra-passe deve ter pelo menos 8 caracteres.');
-                $this->redirect('/admin/utilizadores/' . $id . '/editar');
-            }
-            $updateData['password_hash'] = password_hash($password, PASSWORD_BCRYPT);
-        }
 
         if ($request->post('remove_photo') === '1' && !empty($user['photo_path'])) {
             $this->deleteUserPhoto($user['photo_path']);
@@ -1244,11 +1227,10 @@ class AdminController extends Controller
         }
 
         return [
-            'name'     => $name,
-            'email'    => $email,
-            'role'     => $role,
-            'password' => trim($request->post('password', '')),
-            'errors'   => $errors,
+            'name'   => $name,
+            'email'  => $email,
+            'role'   => $role,
+            'errors' => $errors,
         ];
     }
 }
