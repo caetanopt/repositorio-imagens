@@ -1623,7 +1623,7 @@ body.lightbox-open { overflow: hidden; }
     border-radius: var(--radius-lg);
     padding: 2rem;
     width: 100%;
-    max-width: 400px;
+    max-width: 450px;
     box-shadow: var(--shadow-lg);
 }
 
