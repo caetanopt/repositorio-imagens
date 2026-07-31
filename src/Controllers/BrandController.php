@@ -18,7 +18,7 @@ class BrandController extends Controller
         $brands     = $brandModel->findAllWithLocationCounts();
 
         foreach ($brands as &$brand) {
-            $brand['logo_url'] = $brandModel->logoUrl($brand['slug']);
+            $brand['logo_url'] = $brandModel->logoUrl($brand['slug'], $brand['logo_path'] ?? null);
         }
         unset($brand);
 
@@ -44,7 +44,7 @@ class BrandController extends Controller
             exit;
         }
 
-        $brand['logo_url'] = $brandModel->logoUrl($brand['slug']);
+        $brand['logo_url'] = $brandModel->logoUrl($brand['slug'], $brand['logo_path'] ?? null);
 
         $locationModel = new Location();
         $locations     = $locationModel->findByBrand($brand['id']);

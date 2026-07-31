@@ -405,6 +405,11 @@ class AdminController extends Controller
             @mkdir($brandDir, 0755, true);
         }
 
+        $logoError = $this->processBrandLogoUpload($request, $id, $brandModel);
+        if ($logoError) {
+            $this->setFlash('error', 'Marca criada, mas o logo falhou: ' . $logoError);
+        }
+
         $me = $this->auth->user();
         $auditLog = new AuditLog();
         $auditLog->log($me['id'], 'brand_create', 'brand', $id, ['name' => $name, 'slug' => $slug]);
@@ -425,6 +430,8 @@ class AdminController extends Controller
             $this->setFlash('error', 'Marca não encontrada.');
             $this->redirect('/admin/marcas');
         }
+
+        $brand['logo_url'] = $brandModel->logoUrl($brand['slug'], $brand['logo_path'] ?? null);
 
         $this->render('admin/brands/form', [
             'brand'       => $brand,
@@ -461,7 +468,19 @@ class AdminController extends Controller
             $this->redirect('/admin/marcas/' . $id . '/editar');
         }
 
-        $brandModel->update($id, ['name' => $name, 'slug' => $slug]);
+        $updateData = ['name' => $name, 'slug' => $slug];
+
+        if ($request->post('remove_logo') === '1' && !empty($brand['logo_path'])) {
+            $this->deleteBrandLogo($brand['logo_path']);
+            $updateData['logo_path'] = null;
+        }
+
+        $brandModel->update($id, $updateData);
+
+        $logoError = $this->processBrandLogoUpload($request, $id, $brandModel);
+        if ($logoError) {
+            $this->setFlash('error', 'Marca actualizada, mas o logo falhou: ' . $logoError);
+        }
 
         $me = $this->auth->user();
         $auditLog = new AuditLog();
@@ -469,6 +488,103 @@ class AdminController extends Controller
 
         $this->setFlash('success', 'Marca actualizada.');
         $this->redirect('/admin/marcas');
+    }
+
+    /**
+     * Validates and uploads an optional "logo" file to Supabase Storage,
+     * updating the brand's logo_path on success. Mirrors
+     * processUserPhotoUpload(). Returns an error message on failure, or null
+     * if there was nothing to upload / it succeeded.
+     */
+    private function processBrandLogoUpload(Request $request, int $brandId, Brand $brandModel): ?string
+    {
+        $file = $request->file('logo');
+        if (!$file || empty($file['tmp_name']) || $file['error'] === UPLOAD_ERR_NO_FILE) {
+            return null;
+        }
+
+        if ($file['error'] !== UPLOAD_ERR_OK) {
+            return 'erro no envio do ficheiro.';
+        }
+
+        if ($file['size'] > 4 * 1024 * 1024) {
+            return 'ficheiro demasiado grande (máximo 4 MB).';
+        }
+
+        $allowedMimes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
+        $magicBytes   = [
+            'image/jpeg' => ["\xFF\xD8\xFF"],
+            'image/jpg'  => ["\xFF\xD8\xFF"],
+            'image/png'  => ["\x89\x50\x4E\x47\x0D\x0A\x1A\x0A"],
+            'image/gif'  => ["\x47\x49\x46\x38\x37\x61", "\x47\x49\x46\x38\x39\x61"],
+            'image/webp' => ["\x52\x49\x46\x46"],
+        ];
+
+        $mime = mime_content_type($file['tmp_name']);
+        if (!in_array($mime, $allowedMimes, true)) {
+            return 'tipo de ficheiro não suportado (JPG, PNG, GIF, WEBP ou SVG).';
+        }
+
+        if ($mime !== 'image/svg+xml') {
+            $handle     = fopen($file['tmp_name'], 'rb');
+            $fileHeader = fread($handle, 12);
+            fclose($handle);
+
+            $validMagic = false;
+            foreach ($magicBytes[$mime] ?? [] as $sig) {
+                if (str_starts_with($fileHeader, $sig)) {
+                    $validMagic = true;
+                    break;
+                }
+            }
+            if (!$validMagic) {
+                return 'o ficheiro não é uma imagem válida.';
+            }
+        }
+
+        $storage = new SupabaseStorage();
+        if (!$storage->isConfigured()) {
+            return 'o armazenamento de imagens não está configurado.';
+        }
+
+        $ext = match ($mime) {
+            'image/png'     => 'png',
+            'image/webp'    => 'webp',
+            'image/gif'     => 'gif',
+            'image/svg+xml' => 'svg',
+            default         => 'jpg',
+        };
+
+        try {
+            $url = $storage->upload($file['tmp_name'], 'brands/' . $brandId . '-' . time() . '.' . $ext, $mime);
+        } catch (\Throwable $e) {
+            error_log('Brand logo upload failed: ' . $e->getMessage());
+            return 'falha ao enviar para o armazenamento.';
+        }
+
+        $existing = $brandModel->find($brandId);
+        if (!empty($existing['logo_path'])) {
+            $this->deleteBrandLogo($existing['logo_path']);
+        }
+
+        $brandModel->update($brandId, ['logo_path' => $url]);
+        return null;
+    }
+
+    private function deleteBrandLogo(string $logoPath): void
+    {
+        if (!str_starts_with($logoPath, 'http')) {
+            return;
+        }
+        $storage = new SupabaseStorage();
+        if (!$storage->isConfigured()) {
+            return;
+        }
+        try {
+            $storage->delete([$storage->pathFromUrl($logoPath)]);
+        } catch (\Throwable $e) {
+            error_log('Brand logo delete failed: ' . $e->getMessage());
+        }
     }
 
     public function brandDelete(Request $request, array $params = []): void
@@ -650,8 +766,8 @@ class AdminController extends Controller
             $deleted++;
         }
 
-        $this->setFlash('success', "{$deleted} imagem(ns) com mais de " . self::TRASH_RETENTION_DAYS . " dias na lixeira foram eliminadas definitivamente.");
-        $this->redirect('/admin/lixeira');
+        $this->setFlash('success', "{$deleted} imagem(ns) com mais de " . self::TRASH_RETENTION_DAYS . " dias no lixo foram eliminadas definitivamente.");
+        $this->redirect('/admin/lixo');
     }
 
     /**
@@ -772,7 +888,7 @@ class AdminController extends Controller
             $this->redirect('/admin/marcas');
         }
 
-        $brand['logo_url'] = $brandModel->logoUrl($brand['slug']);
+        $brand['logo_url'] = $brandModel->logoUrl($brand['slug'], $brand['logo_path'] ?? null);
 
         $locationModel = new Location();
         $locations     = $locationModel->findByBrand($brandId);
@@ -806,7 +922,7 @@ class AdminController extends Controller
             $this->redirect('/admin/marcas');
         }
 
-        $brand['logo_url'] = $brandModel->logoUrl($brand['slug']);
+        $brand['logo_url'] = $brandModel->logoUrl($brand['slug'], $brand['logo_path'] ?? null);
 
         $this->render('admin/brands/location_form', [
             'brand'       => $brand,
@@ -888,7 +1004,7 @@ class AdminController extends Controller
             $this->redirect('/admin/marcas/' . $brandId . '/localizacoes');
         }
 
-        $brand['logo_url'] = $brandModel->logoUrl($brand['slug']);
+        $brand['logo_url'] = $brandModel->logoUrl($brand['slug'], $brand['logo_path'] ?? null);
 
         $this->render('admin/brands/location_form', [
             'brand'         => $brand,
@@ -997,7 +1113,7 @@ class AdminController extends Controller
         if ($trashedCount > 0) {
             $this->json([
                 'success' => false,
-                'error'   => "Não é possível apagar: tem {$trashedCount} imagem(ns) na lixeira associada(s). Elimine-as permanentemente na Lixeira antes de apagar a localização.",
+                'error'   => "Não é possível apagar: tem {$trashedCount} imagem(ns) no lixo associada(s). Elimine-as permanentemente no Lixo antes de apagar a localização.",
             ], 422);
         }
 

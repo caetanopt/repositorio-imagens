@@ -1,11 +1,11 @@
 <?php
-$pageTitle = 'Lixeira';
+$pageTitle = 'Lixo';
 require_once __DIR__ . '/../../layout/header.php';
 ?>
 
 <div class="page-header">
     <div class="page-header-left">
-        <h1 class="page-title">Lixeira</h1>
+        <h1 class="page-title">Lixo</h1>
         <span class="total-count"><?= e(count($images)) ?> imagem(ns) eliminada(s)</span>
     </div>
     <div class="page-header-right">
@@ -22,11 +22,11 @@ require_once __DIR__ . '/../../layout/header.php';
 
 <?php if ($can_hard_delete && $old_count > 0): ?>
 <div class="alert alert-error" role="alert" style="display:flex; align-items:center; justify-content:space-between; gap:1rem;">
-    <span><?= e($old_count) ?> imagem(ns) está(ão) na lixeira há mais de <?= e($retention_days) ?> dias.</span>
-    <form method="post" action="<?= e(url('/admin/lixeira/purgar-antigas')) ?>" style="margin:0;">
+    <span><?= e($old_count) ?> imagem(ns) está(ão) no lixo há mais de <?= e($retention_days) ?> dias.</span>
+    <form method="post" action="<?= e(url('/admin/lixo/purgar-antigas')) ?>" style="margin:0;">
         <?= csrf_field() ?>
         <button type="submit" class="btn btn-xs btn-danger"
-                onclick="return confirm('Eliminar definitivamente todas as imagens com mais de <?= e($retention_days) ?> dias na lixeira? Esta acção não pode ser revertida.');">
+                onclick="return confirm('Eliminar definitivamente todas as imagens com mais de <?= e($retention_days) ?> dias no lixo? Esta acção não pode ser revertida.');">
             Eliminar imagens antigas agora
         </button>
     </form>
@@ -57,7 +57,7 @@ require_once __DIR__ . '/../../layout/header.php';
             </thead>
             <tbody>
                 <?php if (empty($images)): ?>
-                <tr><td colspan="6" class="table-empty">A lixeira está vazia.</td></tr>
+                <tr><td colspan="6" class="table-empty">O lixo está vazio.</td></tr>
                 <?php else: ?>
                 <?php foreach ($images as $image): ?>
                 <tr data-image-row="<?= e($image['id']) ?>">
@@ -76,7 +76,7 @@ require_once __DIR__ . '/../../layout/header.php';
                     <td class="table-date">
                         <?= e(date('d/m/Y H:i', strtotime($image['deleted_at']))) ?>
                         <?php if ($image['is_old']): ?>
-                        <span class="badge badge-admin badge-sm" title="Mais de <?= e($retention_days) ?> dias na lixeira">antiga</span>
+                        <span class="badge badge-admin badge-sm" title="Mais de <?= e($retention_days) ?> dias no lixo">antiga</span>
                         <?php endif; ?>
                     </td>
                     <td class="table-actions">
@@ -109,7 +109,7 @@ function removeTrashRow(id) {
         const tbody = document.querySelector('.admin-table tbody');
         if (tbody && !tbody.querySelector('tr:not([style*="opacity"])')) {
             const cols = document.getElementById('selectAll') ? 6 : 5;
-            tbody.innerHTML = `<tr><td colspan="${cols}" class="table-empty">A lixeira está vazia.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="${cols}" class="table-empty">O lixo está vazio.</td></tr>`;
         }
         const counter = document.querySelector('.total-count');
         if (counter) {

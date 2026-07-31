@@ -99,7 +99,7 @@ class LocationController extends Controller
             $params['loc_slug']   ?? ''
         );
 
-        $brand['logo_url'] = (new Brand())->logoUrl($brand['slug']);
+        $brand['logo_url'] = (new Brand())->logoUrl($brand['slug'], $brand['logo_path'] ?? null);
         $slotNames         = self::slotNamesForLocation($brand['slug'], $location);
         $maxPhotos         = count($slotNames);
 
@@ -461,7 +461,7 @@ class LocationController extends Controller
         }
 
         // Soft delete only — files stay in storage so the image can still be
-        // restored from the Lixeira. They are only removed permanently on
+        // restored from the Lixo. They are only removed permanently on
         // hard delete.
         $imageModel->softDelete($id);
 

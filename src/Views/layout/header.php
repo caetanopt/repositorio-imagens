@@ -48,7 +48,7 @@
                 <?php if (!empty($auth->user()['photo_path'])): ?>
                 <img class="user-avatar user-avatar--photo" src="<?= e($auth->user()['photo_path']) ?>" alt="">
                 <?php else: ?>
-                <div class="user-avatar"><?= e(mb_substr($auth->user()['name'] ?? 'U', 0, 1)) ?></div>
+                <div class="user-avatar"><?= e(initials($auth->user()['name'] ?? 'U')) ?></div>
                 <?php endif; ?>
                 <span class="user-name"><?= e($auth->user()['name'] ?? '') ?></span>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
@@ -200,12 +200,12 @@
             <?php endif; ?>
             <?php endif; ?>
             <?php if ($auth->can('restore_images')): ?>
-            <a href="<?= url('/admin/lixeira') ?>" class="sidebar-item <?= strpos($_SERVER['REQUEST_URI'] ?? '', '/admin/lixeira') === 0 ? 'active' : '' ?>">
+            <a href="<?= url('/admin/lixo') ?>" class="sidebar-item <?= strpos($_SERVER['REQUEST_URI'] ?? '', '/admin/lixo') === 0 ? 'active' : '' ?>">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>
                     <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
                 </svg>
-                <span>Lixeira</span>
+                <span>Lixo</span>
             </a>
             <?php endif; ?>
         </nav>

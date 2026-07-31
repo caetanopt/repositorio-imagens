@@ -51,7 +51,7 @@ require_once __DIR__ . '/../../layout/header.php';
                             <?php if (!empty($user['photo_path'])): ?>
                             <img class="user-avatar user-avatar--sm user-avatar--photo" src="<?= e($user['photo_path']) ?>" alt="">
                             <?php else: ?>
-                            <div class="user-avatar user-avatar--sm"><?= e(mb_substr($user['name'], 0, 1)) ?></div>
+                            <div class="user-avatar user-avatar--sm"><?= e(initials($user['name'])) ?></div>
                             <?php endif; ?>
                             <?= e($user['name']) ?>
                         </div>

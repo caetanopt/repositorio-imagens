@@ -151,8 +151,8 @@ $router->post('/admin/localizacoes/importar', 'AdminController@locationImportPre
 $router->post('/admin/localizacoes/importar/confirmar', 'AdminController@locationImportConfirm');
 
 // Admin — Images
-$router->get('/admin/lixeira', 'AdminController@trashList');
-$router->post('/admin/lixeira/purgar-antigas', 'AdminController@trashPurgeOld');
+$router->get('/admin/lixo', 'AdminController@trashList');
+$router->post('/admin/lixo/purgar-antigas', 'AdminController@trashPurgeOld');
 $router->post('/admin/imagens/eliminar-em-massa', 'AdminController@imageBulkHardDelete');
 $router->post('/admin/imagens/:id/restaurar', 'AdminController@imageRestore');
 $router->post('/admin/imagens/:id/eliminar', 'AdminController@imageHardDelete');

@@ -21,10 +21,29 @@ require_once __DIR__ . '/../../layout/header.php';
 <?php endif; ?>
 
 <div class="card card--form">
-    <form action="<?= e($action) ?>" method="post" novalidate>
+    <form action="<?= e($action) ?>" method="post" enctype="multipart/form-data" novalidate>
         <input type="hidden" name="csrf_token" value="<?= e($csrf_token) ?>">
 
         <div class="form-grid form-grid--narrow">
+            <div class="form-group">
+                <label class="form-label" for="logo">Logo da marca</label>
+                <?php if ($isEdit && !empty($brand['logo_url'])): ?>
+                <div style="display:flex; align-items:center; gap:.75rem; margin-bottom:.5rem;">
+                    <img src="<?= e($brand['logo_url']) ?>" alt=""
+                         style="width:48px; height:48px; object-fit:contain; background:#fff; border:1px solid var(--border); border-radius:8px; padding:.25rem;">
+                    <?php if (!empty($brand['logo_path'])): ?>
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="remove_logo" value="1" class="checkbox">
+                        <span class="checkbox-custom"></span>
+                        Remover logo actual
+                    </label>
+                    <?php endif; ?>
+                </div>
+                <?php endif; ?>
+                <input type="file" id="logo" name="logo" class="form-input" accept="image/jpeg,image/png,image/gif,image/webp,image/svg+xml">
+                <p class="form-hint-text">JPG, PNG, GIF, WEBP ou SVG. Máximo 4 MB.</p>
+            </div>
+
             <div class="form-group">
                 <label class="form-label" for="name">Nome da marca <span class="required">*</span></label>
                 <input type="text" id="name" name="name" class="form-input"

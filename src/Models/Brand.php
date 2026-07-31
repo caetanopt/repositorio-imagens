@@ -41,10 +41,16 @@ class Brand extends Model
     }
 
     /**
-     * Resolves the public URL of a brand's logo file, if one exists on disk.
+     * Resolves the public URL of a brand's logo: an uploaded logo_path takes
+     * priority, falling back to a static file committed under
+     * public/assets/img/brands/ (the original, pre-upload convention).
      */
-    public function logoUrl(string $slug): ?string
+    public function logoUrl(string $slug, ?string $logoPath = null): ?string
     {
+        if (!empty($logoPath)) {
+            return $logoPath;
+        }
+
         $logoBase = __DIR__ . '/../../public/assets/img/brands/';
         foreach (['.png', '.svg'] as $ext) {
             if (file_exists($logoBase . $slug . $ext)) {

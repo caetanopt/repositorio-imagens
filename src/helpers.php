@@ -59,6 +59,21 @@ if (!function_exists('formatBytes')) {
     }
 }
 
+if (!function_exists('initials')) {
+    function initials(string $name): string
+    {
+        $parts = preg_split('/\s+/', trim($name), -1, PREG_SPLIT_NO_EMPTY);
+        if (empty($parts)) {
+            return '';
+        }
+        $letters = mb_substr($parts[0], 0, 1);
+        if (count($parts) > 1) {
+            $letters .= mb_substr($parts[1], 0, 1);
+        }
+        return mb_strtoupper($letters, 'UTF-8');
+    }
+}
+
 if (!function_exists('asset')) {
     function asset(string $path): string
     {

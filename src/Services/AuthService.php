@@ -73,7 +73,7 @@ class AuthService
 
     private function buildLoginLinkEmailHtml(string $name, string $link): string
     {
-        $logoUrl = rtrim(env('APP_URL', ''), '/') . '/assets/img/caetano-logo-email.png';
+        $logoUrl = 'https://assets.caetano.pt/img/email/logo-caetano-999999.png';
 
         return <<<HTML
 <!DOCTYPE html>
