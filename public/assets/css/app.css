@@ -1632,6 +1632,24 @@ body.lightbox-open { overflow: hidden; }
 
 .login-footer { margin-top: 1.5rem; font-size: .8rem; color: rgba(255,255,255,.4); text-align: center; }
 
+.login-page .btn-primary { background: #002E5D; border-color: #002E5D; }
+.login-page .btn-primary:hover { background: #001f40; border-color: #001f40; }
+
+/* ─── Link-sent panel (shown after requesting a login link) ───────────── */
+.login-sent-icon {
+    width: 56px; height: 56px;
+    margin: 0 auto 1rem;
+    background: #d1fae5;
+    color: #065f46;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.login-sent-title { font-size: 1.1rem; font-weight: 700; text-align: center; margin-bottom: .5rem; }
+.login-sent-text { font-size: .875rem; color: var(--text-muted); text-align: center; line-height: 1.5; }
+.login-sent-retry { display: block; text-align: center; margin-top: 1.25rem; font-size: .875rem; }
+
 /* ============================================================
    Fetch Error
    ============================================================ */

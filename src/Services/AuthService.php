@@ -62,17 +62,73 @@ class AuthService
 
         $appName = env('APP_NAME', 'Repositório Digital');
         $subject = 'O seu link de acesso — ' . $appName;
-        $html = '<p>Olá ' . e($user['name']) . ',</p>'
-            . '<p>Recebemos um pedido de acesso ao ' . e($appName) . '. '
-            . 'Clique no link abaixo para entrar (válido por ' . self::TOKEN_TTL_MINUTES . ' minutos, uso único):</p>'
-            . '<p><a href="' . e($link) . '">' . e($link) . '</a></p>'
-            . '<p>Se não pediu este acesso, pode ignorar este email.</p>';
-        $text = "Olá {$user['name']},\n\n"
-            . "Recebemos um pedido de acesso. Use o link abaixo para entrar (válido por " . self::TOKEN_TTL_MINUTES . " minutos, uso único):\n\n"
+
+        (new MailerService())->send(
+            $user['email'],
+            $subject,
+            $this->buildLoginLinkEmailHtml($user['name'], $link),
+            $this->buildLoginLinkEmailText($user['name'], $link)
+        );
+    }
+
+    private function buildLoginLinkEmailHtml(string $name, string $link): string
+    {
+        $logoUrl = rtrim(env('APP_URL', ''), '/') . '/assets/img/caetano-logo-email.png';
+
+        return <<<HTML
+<!DOCTYPE html>
+<html lang="pt">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+<body style="margin:0; padding:0; background:#EEF6FA; font-family:Arial, Helvetica, sans-serif;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#EEF6FA; padding:32px 16px;">
+<tr><td align="center">
+<table role="presentation" width="480" cellpadding="0" cellspacing="0" style="max-width:480px; background:#ffffff; border-radius:12px; overflow:hidden;">
+<tr><td align="center" style="padding:32px 32px 8px;">
+<img src="{$this->esc($logoUrl)}" width="160" alt="Caetano" style="display:block; max-width:160px; height:auto;">
+</td></tr>
+<tr><td style="padding:16px 32px 8px; color:#1e293b; font-size:15px; line-height:1.6;">
+<p style="margin:0 0 16px;">Olá {$this->esc($name)},</p>
+<p style="margin:0 0 16px;">Recebemos um pedido de acesso ao Repositório Digital. Clique no botão abaixo para entrar (válido por 15 minutos, uso único):</p>
+</td></tr>
+<tr><td align="center" style="padding:8px 32px 24px;">
+<table role="presentation" cellpadding="0" cellspacing="0">
+<tr><td align="center" bgcolor="#002E5D" style="border-radius:8px;">
+<a href="{$this->esc($link)}" target="_blank" style="display:inline-block; padding:14px 32px; font-size:15px; font-weight:bold; color:#ffffff; text-decoration:none; border-radius:8px;">Aceder à Plataforma</a>
+</td></tr>
+</table>
+</td></tr>
+<tr><td style="padding:0 32px 32px; color:#64748b; font-size:13px; line-height:1.6;">
+<p style="margin:0;">Se não pediu este acesso, pode ignorar este email.</p>
+</td></tr>
+</table>
+<table role="presentation" width="480" cellpadding="0" cellspacing="0" style="max-width:480px;">
+<tr><td align="center" style="padding:20px 16px 0; color:#94a3b8; font-size:12px;">
+&copy; {$this->currentYear()} Caetano Automotive Portugal S.A.
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>
+HTML;
+    }
+
+    private function buildLoginLinkEmailText(string $name, string $link): string
+    {
+        return "Olá {$name},\n\n"
+            . "Recebemos um pedido de acesso ao Repositório Digital. Use o link abaixo para entrar (válido por " . self::TOKEN_TTL_MINUTES . " minutos, uso único):\n\n"
             . "{$link}\n\n"
             . "Se não pediu este acesso, pode ignorar este email.";
+    }
 
-        (new MailerService())->send($user['email'], $subject, $html, $text);
+    private function esc(string $value): string
+    {
+        return htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+    }
+
+    private function currentYear(): string
+    {
+        return date('Y');
     }
 
     /**

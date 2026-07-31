@@ -37,6 +37,9 @@ class AuthController extends Controller
         $remember = (bool) $request->post('remember_me', false);
 
         if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            if ($this->wantsJson()) {
+                $this->json(['success' => false, 'error' => 'Introduza um email válido.'], 422);
+            }
             $this->setFlash('error', 'Introduza um email válido.');
             $this->setOld(['email' => $email]);
             $this->redirect('/login');
@@ -49,6 +52,10 @@ class AuthController extends Controller
             'email' => $email,
             'ip'    => $request->ip(),
         ]);
+
+        if ($this->wantsJson()) {
+            $this->json(['success' => true, 'email' => $email]);
+        }
 
         $this->setFlash('success', 'Se o email pertencer a uma conta activa, foi enviado um link de acesso. Verifique a sua caixa de entrada.');
         $this->redirect('/login');
