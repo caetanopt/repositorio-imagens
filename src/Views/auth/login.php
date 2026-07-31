@@ -83,8 +83,8 @@
             </div>
             <h2 class="login-sent-title">Verifique o seu email</h2>
             <p class="login-sent-text">
-                Enviámos-lhe um link de acesso para <strong id="linkSentEmail"></strong>.
-                O link é válido durante 15 minutos.
+                Caso seja um utilizador autorizado, enviámos-lhe um link de acesso para
+                <strong id="linkSentEmail"></strong>. O link é válido durante 15 minutos.
             </p>
             <a href="#" id="linkSentRetry" class="login-sent-retry">Usar outro email</a>
         </div>
