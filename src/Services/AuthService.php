@@ -164,11 +164,16 @@ HTML;
         if (!empty($row['remember'])) {
             $rememberToken = bin2hex(random_bytes(32));
             $this->userModel->setRememberToken((int) $user['id'], $rememberToken);
-            $days = (int) env('REMEMBER_ME_DAYS', 30);
+
+            // "Manter sessão activa" keeps the user logged in only until the
+            // end of the day it was requested — not a fixed 24h window. e.g.
+            // logging in at 8am or at 11pm both expire at 00:00 the next day.
+            $midnight = new \DateTimeImmutable('tomorrow midnight', new \DateTimeZone('Europe/Lisbon'));
+
             setcookie(
                 'remember_token',
                 $rememberToken,
-                time() + ($days * 86400),
+                $midnight->getTimestamp(),
                 '/',
                 '',
                 true,  // secure
