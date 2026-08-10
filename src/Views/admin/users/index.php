@@ -35,7 +35,6 @@ require_once __DIR__ . '/../../layout/header.php';
             <option value="editor" <?= $role === 'editor' ? 'selected' : '' ?>>Editor</option>
             <option value="viewer" <?= $role === 'viewer' ? 'selected' : '' ?>>Visualizador</option>
         </select>
-        <button type="submit" class="btn btn-secondary btn-sm">Filtrar</button>
         <?php if ($search !== '' || $role !== ''): ?>
         <a href="<?= url('/admin/utilizadores') ?>" class="btn btn-secondary btn-sm">Limpar</a>
         <?php endif; ?>
