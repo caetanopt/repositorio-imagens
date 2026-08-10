@@ -102,4 +102,57 @@ class User extends Model
             );
         }
     }
+
+    /**
+     * Users matching an optional name/email search and role filter, paged.
+     */
+    public function search(array $filters, int $page, int $perPage): array
+    {
+        [$where, $params] = $this->buildSearchWhere($filters);
+
+        $sql = 'SELECT * FROM "users"';
+        if (!empty($where)) {
+            $sql .= ' WHERE ' . implode(' AND ', $where);
+        }
+        $sql .= ' ORDER BY "name" ASC LIMIT ? OFFSET ?';
+
+        $params[] = $perPage;
+        $params[] = ($page - 1) * $perPage;
+
+        return $this->db()->query($sql, $params)->fetchAll();
+    }
+
+    public function countSearch(array $filters): int
+    {
+        [$where, $params] = $this->buildSearchWhere($filters);
+
+        $sql = 'SELECT COUNT(*) AS cnt FROM "users"';
+        if (!empty($where)) {
+            $sql .= ' WHERE ' . implode(' AND ', $where);
+        }
+
+        $row = $this->db()->query($sql, $params)->fetch();
+        return (int) ($row['cnt'] ?? 0);
+    }
+
+    private function buildSearchWhere(array $filters): array
+    {
+        $where  = [];
+        $params = [];
+
+        if (!empty($filters['search'])) {
+            $escaped  = str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $filters['search']);
+            $term     = '%' . $escaped . '%';
+            $where[]  = '("name" ILIKE ? OR "email" ILIKE ?)';
+            $params[] = $term;
+            $params[] = $term;
+        }
+
+        if (!empty($filters['role'])) {
+            $where[]  = '"role" = ?';
+            $params[] = $filters['role'];
+        }
+
+        return [$where, $params];
+    }
 }

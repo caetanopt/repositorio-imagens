@@ -18,12 +18,23 @@ class AdminController extends Controller
 {
     // ─── Users ────────────────────────────────────────────────────────────────
 
+    private const USERS_PER_PAGE = 15;
+
     public function userList(Request $request, array $params = []): void
     {
         $this->requirePermission('manage_users');
 
+        $search = trim($request->get('pesquisa', ''));
+        $role   = $request->get('funcao', '');
+        if (!in_array($role, ['admin', 'editor', 'viewer'], true)) {
+            $role = '';
+        }
+        $page = max(1, (int) $request->get('pagina', 1));
+
         $userModel = new User();
-        $users     = $userModel->findAll([], 'name ASC');
+        $filters   = ['search' => $search, 'role' => $role];
+        $total     = $userModel->countSearch($filters);
+        $users     = $userModel->search($filters, $page, self::USERS_PER_PAGE);
 
         foreach ($users as &$user) {
             $user['is_locked'] = $userModel->isLocked($user);
@@ -32,6 +43,10 @@ class AdminController extends Controller
 
         $this->render('admin/users/index', [
             'users'       => $users,
+            'total_count' => $total,
+            'search'      => $search,
+            'role'        => $role,
+            'pagination'  => $this->paginate($total, self::USERS_PER_PAGE, $page),
             'flash_ok'    => $this->getFlash('success'),
             'flash_error' => $this->getFlash('error'),
             'csrf_token'  => $this->csrfToken(),

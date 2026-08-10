@@ -982,7 +982,7 @@ code { font-family: 'SFMono-Regular', Consolas, monospace; font-size: .875em; ba
     transition: all var(--transition);
 }
 
-.pagination-btn:hover { background: var(--bg); }
+.pagination-btn:hover { background: var(--bg); text-decoration: none; }
 
 .pagination-pages { display: flex; gap: .3rem; }
 
@@ -998,7 +998,7 @@ code { font-family: 'SFMono-Regular', Consolas, monospace; font-size: .875em; ba
     transition: all var(--transition);
 }
 
-.pagination-page:hover { background: var(--bg); }
+.pagination-page:hover { background: var(--bg); text-decoration: none; }
 .pagination-page.active { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
 
 .pagination-ellipsis { display: flex; align-items: center; padding: 0 .2rem; color: var(--text-muted); }

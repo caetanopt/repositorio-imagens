@@ -6,7 +6,7 @@ require_once __DIR__ . '/../../layout/header.php';
 <div class="page-header">
     <div class="page-header-left">
         <h1 class="page-title">Utilizadores</h1>
-        <span class="total-count"><?= e(count($users)) ?> utilizadores</span>
+        <span class="total-count"><?= e($total_count) ?> utilizador<?= $total_count === 1 ? '' : 'es' ?></span>
     </div>
     <div class="page-header-right">
         <a href="<?= url('/admin/utilizadores/criar') ?>" class="btn btn-primary">
@@ -24,6 +24,23 @@ require_once __DIR__ . '/../../layout/header.php';
 <?php if (!empty($flash_error)): ?>
 <div class="alert alert-error" role="alert"><?= e($flash_error) ?></div>
 <?php endif; ?>
+
+<div class="card" style="margin-bottom: 1rem;">
+    <form class="toolbar" method="get" action="<?= url('/admin/utilizadores') ?>" style="padding: 1rem;">
+        <input type="search" name="pesquisa" id="userSearch" class="form-input" style="max-width: 280px;"
+               placeholder="Pesquisar por nome ou email..." value="<?= e($search) ?>">
+        <select name="funcao" id="roleFilter" class="form-select form-select--sm" style="max-width: 200px;">
+            <option value="">Todas as funções</option>
+            <option value="admin"  <?= $role === 'admin'  ? 'selected' : '' ?>>Administrador</option>
+            <option value="editor" <?= $role === 'editor' ? 'selected' : '' ?>>Editor</option>
+            <option value="viewer" <?= $role === 'viewer' ? 'selected' : '' ?>>Visualizador</option>
+        </select>
+        <button type="submit" class="btn btn-secondary btn-sm">Filtrar</button>
+        <?php if ($search !== '' || $role !== ''): ?>
+        <a href="<?= url('/admin/utilizadores') ?>" class="btn btn-secondary btn-sm">Limpar</a>
+        <?php endif; ?>
+    </form>
+</div>
 
 <div class="card">
     <div class="table-wrap">
@@ -106,6 +123,54 @@ require_once __DIR__ . '/../../layout/header.php';
         </table>
     </div>
 </div>
+
+<?php
+$pageUrl = fn(int $p) => url(
+    '/admin/utilizadores?pagina=' . $p
+    . '&pesquisa=' . urlencode($search)
+    . '&funcao=' . urlencode($role)
+);
+?>
+<?php if ($pagination['total_pages'] > 1): ?>
+<nav class="pagination" aria-label="Paginação" style="margin-top: 1rem;">
+    <?php if ($pagination['has_prev']): ?>
+    <a href="<?= e($pageUrl($pagination['prev_page'])) ?>" class="pagination-btn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="m15 18-6-6 6-6"/>
+        </svg>
+        Anterior
+    </a>
+    <?php endif; ?>
+
+    <div class="pagination-pages">
+        <?php
+        $current = $pagination['current_page'];
+        $totalPages = $pagination['total_pages'];
+        $range   = 2;
+        for ($i = 1; $i <= $totalPages; $i++):
+            if ($i === 1 || $i === $totalPages || abs($i - $current) <= $range):
+        ?>
+        <a href="<?= e($pageUrl($i)) ?>" class="pagination-page <?= $i === $current ? 'active' : '' ?>"><?= $i ?></a>
+        <?php
+            elseif (abs($i - $current) === $range + 1):
+        ?>
+        <span class="pagination-ellipsis">…</span>
+        <?php
+            endif;
+        endfor;
+        ?>
+    </div>
+
+    <?php if ($pagination['has_next']): ?>
+    <a href="<?= e($pageUrl($pagination['next_page'])) ?>" class="pagination-btn">
+        Seguinte
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="m9 18 6-6-6-6"/>
+        </svg>
+    </a>
+    <?php endif; ?>
+</nav>
+<?php endif; ?>
 
 <script>
 document.querySelectorAll('[data-toggle-user]').forEach(btn => {
@@ -242,6 +307,10 @@ document.querySelectorAll('[data-unlock-user]').forEach(btn => {
             window.toast?.error('Erro de comunicação.');
         }
     });
+});
+
+document.getElementById('roleFilter')?.addEventListener('change', function () {
+    this.form.submit();
 });
 </script>
 
